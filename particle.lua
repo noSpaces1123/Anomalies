@@ -2,7 +2,7 @@ function NewParticle(x, y, radius, color, speed, degrees, gravity, lifespan, beh
     return {
         x = x, y = y, yvelocity = 0,
         radius = radius, speed = speed, gravity = gravity, degrees = degrees,
-        lifespan = lifespan, color = color,
+        lifespan = lifespan, startingLifespan = lifespan, color = color,
         draw = function (self)
             love.graphics.setColor(self.color)
 
@@ -16,6 +16,7 @@ function NewParticle(x, y, radius, color, speed, degrees, gravity, lifespan, beh
             self.lifespan = self.lifespan - 1 * GlobalDT
             if self.lifespan <= 0 then
                 zutil.remove(Particles, self)
+                zutil.remove(BGParticles, self)
             end
 
             self.radius = self.lifespan / lifespan * radius
