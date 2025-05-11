@@ -9,6 +9,9 @@ Screen.shutterSpeed = Screen.height / (4 * 60)
 Screen.x = WINDOW.CENTER_X - Screen.width / 2
 Screen.y = WINDOW.CENTER_Y - Screen.height / 2
 
+WonScreen = false
+UseScreens = false
+
 
 
 function StartScreen(conditionsMet)

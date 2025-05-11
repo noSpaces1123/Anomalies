@@ -67,8 +67,6 @@ function love.load()
 
     Buttons = {}
 
-    UseSpinners = false
-
     NewFile()
     ClearGoal = CalculateClearGoal()
     PlaceAnomalies()

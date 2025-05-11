@@ -1,7 +1,7 @@
 SquareSelected = { x = nil, y = nil } -- the square the mouse is hovering over
 
 function UpdateSelectedSquare()
-    if Wheel.running or Screen.running then return end
+    if Spinner.running or Screen.running then return end
 
     local mx, my = love.mouse.getPosition()
 
@@ -50,15 +50,19 @@ function PopSquare(x, y, conditionsMet)
 end
 
 function love.mousepressed(mx, my, button)
-    if not Handbook.showing and not Wheel.running and not Screen.running then
+    if not Handbook.showing and not Spinner.running and not Screen.running then
         if button == 1 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
             UpdateSelectedSquare()
 
             local isAnomaly, conditionsMet = CheckIsAnomaly(SquareSelected.x, SquareSelected.y)
 
             if isAnomaly then
-                if zutil.weightedbool(100/6) then
-                    _G["Start" .. zutil.randomchoice({"Wheel", "Screen"})](conditionsMet)
+                local choices = {}
+                if UseSpinners then table.insert(choices, "Wheel") end
+                if UseScreens then table.insert(choices, "Screen") end
+
+                if zutil.weightedbool(100/6) and #choices > 0 then
+                    _G["Start" .. zutil.randomchoice(choices)](conditionsMet)
                 else
                     PopSquare(SquareSelected.x, SquareSelected.y, conditionsMet)
                 end
@@ -101,13 +105,13 @@ function love.mousepressed(mx, my, button)
                 end
             end
         end
-    elseif Wheel.running and button == 1 then
+    elseif Spinner.running and button == 1 then
         local nHit = 0
         local hitSomething = false
 
-        for _, self in ipairs(Wheel.windows) do
+        for _, self in ipairs(Spinner.windows) do
             if self.hit then nHit = nHit + 1
-            elseif Wheel.pointerDegrees >= self.degrees and Wheel.pointerDegrees <= self.degrees + Wheel.windowDegreeWidth then
+            elseif Spinner.pointerDegrees >= self.degrees and Spinner.pointerDegrees <= self.degrees + Spinner.windowDegreeWidth then
                 self.hit = true
                 zutil.playsfx(SFX.wheelHit, .3, 1 + nHit)
                 hitSomething = true
@@ -116,9 +120,9 @@ function love.mousepressed(mx, my, button)
         end
 
         if hitSomething then
-            table.insert(Wheel.goodClicks, Wheel.pointerDegrees)
+            table.insert(Spinner.goodClicks, Spinner.pointerDegrees)
         else
-            table.insert(Wheel.badClicks, Wheel.pointerDegrees)
+            table.insert(Spinner.badClicks, Spinner.pointerDegrees)
             zutil.playsfx(SFX.badClick, .5, 1)
             ShakeIntensity = 5
         end

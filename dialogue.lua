@@ -173,10 +173,24 @@ Dialogue = {
             end
         },
         {
-            text = "From here on out, you have a chance to get a spinner when eradicating an anomaly. When the spinner is showing, just click when the black line points to a red arc.",
+            text = "From here on out, you have a chance to get a spinner when eradicating an anomaly. I'll show you a practice spinner sometime soon.",
             when = function ()
                 local cond = FilesCompleted == 19
                 if cond then UseSpinners = true end
+                return cond
+            end
+        },
+        {
+            text = "Here is your practice spinner. The line has been slowed significantly. Click anywhere on the screen when the moving black line points to a red line. Don't mis-click. After completing the spinner with no mistakes, the anomaly you chose to eradicate will be eradicated.",
+            when = function ()
+                return UseSpinners and not WonSpinner and Spinner.running
+            end
+        },
+        {
+            text = "From here on out, you have a chance to get a memory screen when removing an anomaly. A practice memory screen will come up soon.",
+            when = function ()
+                local cond = FilesCompleted == 24
+                if cond then UseScreens = true end
                 return cond
             end
         },
@@ -241,13 +255,16 @@ end
 
 function DrawDialogue()
     local _, y = GetGridAnchorCoords()
-    if Wheel.running then y = WINDOW.CENTER_Y - Wheel.radius
+    if Spinner.running then y = WINDOW.CENTER_Y - Spinner.radius
     elseif Screen.running then y = Screen.y end
     y = y - Fonts.dialogue:getHeight() - 20
 
+    local limit = 1000
+    local spacing = (WINDOW.WIDTH - limit) / 2
+    local _, wrappedText = Fonts.dialogue:getWrap(Dialogue.playing.textThusFar, limit)
     love.graphics.setColor(Dialogue.playing.color)
     love.graphics.setFont(Fonts.dialogue)
-    love.graphics.printf(Dialogue.playing.textThusFar, 0, y, WINDOW.WIDTH, "center")
+    love.graphics.printf(Dialogue.playing.textThusFar, spacing, y - (#wrappedText - 1) * Fonts.dialogue:getHeight(), limit, "center")
 end
 
 function SearchForDueEventualDialogue()

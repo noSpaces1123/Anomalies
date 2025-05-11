@@ -14,7 +14,8 @@ function SaveData()
         RewardsCollected = RewardsCollected,
         -- eventualDialoguesTriggered = eventualDialoguesTriggered,
         ConditionsCollected = ConditionsCollected,
-        UseSpinners = UseSpinners,
+        UseSpinners = UseSpinners, UseScreens = UseScreens,
+        PlayedWheel = WonSpinner,
     }
 
     local encoded = love.data.encode("string", "base64", lume.serialize(data))
