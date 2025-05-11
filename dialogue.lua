@@ -3,8 +3,13 @@ Dialogue = {
         targetText = "",
         textThusFar = "",
         preliminaryWait = { current = 0, max = 1*60, done = false },
-        charInterval = { current = 0, max = 4, defaultMax = 4, },
+        charInterval = { current = 0, max = 3.5, defaultMax = 3.5, },
+        color = {0,0,0},
         running = false,
+    },
+    peopleColors = {
+        ["foster"] = {0,0,0},
+        ["michael"] = {1,0,0},
     },
     list = {
         greeting = {
@@ -20,12 +25,12 @@ Dialogue = {
         },
         completeFile = {
             "Nice job on that last one.",
-            "You can do it faster.",
+            "That's the spirit.",
             "Great job.",
             "The boss will be happy.",
             "Don't get distracted.",
             "Excellent work.",
-            "You can do better.",
+            "Nice job.",
             "Good job.",
             "Great work.",
             "Admirable work.",
@@ -63,6 +68,11 @@ Dialogue = {
             "A rating of 100 deserves a sticker. Good job.",
             "Good work. You deserve a sticker. Take one.",
         },
+        gain_sticker_200 = {
+            "Wow, a rating of 200. Most only the hardest workers achieve such a sticker.",
+            "Congratulations on a rating of 200. You don't see that every day.",
+            "A rating of 200, huh? Great job. I knew you could do it.",
+        },
         gain_filescompleted_10 = {
             "10 files completed. Well done.",
             "That's 10 files down. Proud of you.",
@@ -73,7 +83,94 @@ Dialogue = {
             "20 files in the bag. The boss will be happy.",
             "20 files searched and filtrated. Great job. Have a sticker.",
         },
-    }
+        gain_filescompleted_30 = {
+            "30 files completed. For you, take a sticker.",
+            "30 files done. Great job.",
+            "30 files all done. I'm proud.",
+        },
+    },
+    eventual = {
+        {
+            text = "My name is Jamie Foster. I'm sort of your boss. I'll be supervising you. Check your handbook for how to do your job.",
+            when = function ()
+                return FilesCompleted == 0
+            end
+        },
+        {
+            text = "Rating is a thing. See in the top-right? It changes with how well you work. Don't worry, it doesn't go below 0.",
+            when = function ()
+                return FilesCompleted == 3
+            end
+        },
+        {
+            text = "Check your cards. You've gained a new way to identify an anomaly.",
+            when = function ()
+                local cond = FilesCompleted == 4
+                if cond then ConditionsCollected = 3 end
+                return cond
+            end
+        },
+        {
+            text = "Hey there, my name's Michael. Weird job, right? ... It gets kinda fun.", person = "michael",
+            when = function ()
+                return FilesCompleted == 5
+            end
+        },
+        {
+            text = "Check your cards. You've got another new way to find anomalies.",
+            when = function ()
+                local cond = FilesCompleted == 6
+                if cond then ConditionsCollected = 4 end
+                return cond
+            end
+        },
+        {
+            text = "Y'know, if you get a high enough rating, I'll give you a little reward.",
+            when = function ()
+                local collected = false
+                for _, value in pairs(RewardsCollected) do
+                    if value then collected = true break end
+                end
+                return FilesCompleted == 7 and not collected
+            end
+        },
+        {
+            text = "Annoyed by those diagonal black squares strewn around? You've got a card to fix half of them.",
+            when = function ()
+                local cond = FilesCompleted == 9
+                if cond then ConditionsCollected = 5 end
+                return cond
+            end
+        },
+        {
+            text = "Mr Foster's a bit of a weird guy. He doesn't have any photos of his family on his desk- or any personal belongings for that matter.", person = "michael",
+            when = function ()
+                return FilesCompleted == 11
+            end
+        },
+        {
+            text = "Don't believe everything Mr Foster has to say. Moriel Incorporated is known amongst us for hiding information...", person = "michael",
+            when = function ()
+                return FilesCompleted == 12
+            end
+        },
+        {
+            text = "You've gained a new kind of card. Check your cards. The red cards describe squares of which are NEVER anomalies.",
+            when = function ()
+                local cond = FilesCompleted == 15
+                if cond then ConditionsCollected = 6 end
+                return cond
+            end
+        },
+        {
+            text = "From here on out, you have a chance to get a spinner when eradicating an anomaly. When the spinner is showing, just click when the black line points to a red arc.",
+            when = function ()
+                local cond = FilesCompleted == 19
+                if cond then UseSpinners = true end
+                return cond
+            end
+        },
+    },
 }
 
 
@@ -99,17 +196,21 @@ function UpdateDialogue()
         local add = string.sub(Dialogue.playing.targetText, i, i)
         Dialogue.playing.textThusFar = Dialogue.playing.textThusFar .. add
 
-        if add == "." or add == "," then
-            Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.defaultMax * 4
+        if #Dialogue.playing.textThusFar >= 3 and add == "." and string.sub(Dialogue.playing.textThusFar, #Dialogue.playing.textThusFar-1, #Dialogue.playing.textThusFar-1) == "." and string.sub(Dialogue.playing.textThusFar, #Dialogue.playing.textThusFar-2, #Dialogue.playing.textThusFar-2) == "." then
+            Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.defaultMax * 14
+        elseif add == "." or add == "," or add == "!" or add == "?" or add == ";" then
+            Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.defaultMax * 6
+        elseif add == "-" and i < #Dialogue.playing.targetText and string.sub(Dialogue.playing.targetText, i+1, i+1) == " " then
+            Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.defaultMax * 8
         else
             Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.defaultMax
         end
 
-        zutil.playsfx(SFX.dialogue, .05, math.random()/2+.5)
+        zutil.playsfx(SFX[Dialogue.playing.person], .05, math.random()/2+.5)
     end, 1, GlobalDT)
 end
 
-function StartDialogue(type)
+function StartDialogue(type, category_OR_eventualIndex)
     Dialogue.playing.running = true
     Dialogue.playing.textThusFar = ""
     Dialogue.playing.charInterval.current = 0
@@ -117,14 +218,41 @@ function StartDialogue(type)
     Dialogue.playing.preliminaryWait.current = 0
     Dialogue.playing.preliminaryWait.done = false
 
-    Dialogue.playing.targetText = zutil.randomchoice(Dialogue.list[type])
+    if type == "list" then
+        Dialogue.playing.targetText = zutil.randomchoice(Dialogue.list[category_OR_eventualIndex])
+        Dialogue.playing.person = "foster"
+    elseif type == "eventual" then
+        Dialogue.playing.targetText = Dialogue.eventual[category_OR_eventualIndex].text
+        Dialogue.playing.person = (Dialogue.eventual[category_OR_eventualIndex].person and Dialogue.eventual[category_OR_eventualIndex].person or "foster")
+    end
+
+    Dialogue.playing.color = Dialogue.peopleColors[Dialogue.playing.person]
 end
 
 function DrawDialogue()
-    local x, y = GetGridAnchorCoords()
+    local _, y = GetGridAnchorCoords()
+    if Wheel.running then y = WINDOW.CENTER_Y - Wheel.radius end
     y = y - Fonts.dialogue:getHeight() - 20
 
-    love.graphics.setColor(0,0,0)
+    love.graphics.setColor(Dialogue.playing.color)
     love.graphics.setFont(Fonts.dialogue)
-    love.graphics.print(Dialogue.playing.textThusFar, x, y)
+    love.graphics.printf(Dialogue.playing.textThusFar, 0, y, WINDOW.WIDTH, "center")
+end
+
+function SearchForDueEventualDialogue()
+    local triggered = false
+    for index, dialogue in ipairs(Dialogue.eventual) do
+        local condscollectedbefore = ConditionsCollected
+
+        if not dialogue.triggered and dialogue.when() then
+            StartDialogue("eventual", index)
+            dialogue.triggered = true
+            triggered = true
+        end
+
+        if ConditionsCollected > condscollectedbefore then
+            NewCardIndicator.on = true
+        end
+    end
+    if triggered then SaveData() end
 end

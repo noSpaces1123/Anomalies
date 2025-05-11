@@ -216,8 +216,10 @@ function zutil.updatetimer(timer, completeFunction, speed, dt)
     assert(timer.current and timer.max, "Timer table supplied must have fields 'current' and 'max'.")
     timer.current = timer.current + speed * dt
     if timer.current > timer.max then
-        timer.current = timer.current - timer.max
-        if completeFunction then completeFunction() end
+        repeat
+            timer.current = timer.current - timer.max
+            if completeFunction then completeFunction() end
+        until timer.current < timer.max
     end
     return timer
 end

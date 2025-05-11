@@ -1,9 +1,9 @@
 SquareSelected = { x = nil, y = nil } -- the square the mouse is hovering over
 
 function UpdateSelectedSquare()
-    local mx, my = love.mouse.getPosition()
+    if Wheel.running then return end
 
-    local beforeX, beforeY = SquareSelected.x, SquareSelected.y
+    local mx, my = love.mouse.getPosition()
 
     for rowIndex, row in ipairs(Grid) do
         for squareIndex, square in ipairs(row) do
@@ -41,17 +41,7 @@ function PopSquare(x, y, conditionsMet)
     ClearGoal = ClearGoal - 1
 
     if ClearGoal <= 0 then
-        FilesCompleted = FilesCompleted + 1
-        ClearGoal = CalculateClearGoal()
-        zutil.playsfx(SFX.fileComplete, .6, 1)
-
-        StartDialogue("completeFile")
-
-        AdjustRating("completed file")
-
-        GridGlobalData.generationAnimation.running = true
-        GridGlobalData.generationAnimation.max = 0.88*60
-        GridGlobalData.generationAnimation.becauseWrong = false
+        CompleteFile()
     else
         AdjustRating("anomaly found", conditionsMet)
     end
@@ -60,38 +50,123 @@ function PopSquare(x, y, conditionsMet)
 end
 
 function love.mousepressed(x, y, button)
-    if button == 1 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
-        UpdateSelectedSquare()
+    if not Handbook.showing and not Wheel.running then
+        if button == 1 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
+            UpdateSelectedSquare()
 
-        local isAnomaly, conditionsMet = CheckIsAnomaly(SquareSelected.x, SquareSelected.y)
+            local isAnomaly, conditionsMet = CheckIsAnomaly(SquareSelected.x, SquareSelected.y)
 
-        if isAnomaly then
-            PopSquare(SquareSelected.x, SquareSelected.y, conditionsMet)
-        else
-            zutil.playsfx(SFX.notAnAnomaly, .8, 1)
+            if isAnomaly then
+                if UseSpinners and zutil.weightedbool(100/6) then
+                    StartWheel(conditionsMet)
+                else
+                    PopSquare(SquareSelected.x, SquareSelected.y, conditionsMet)
+                end
+            else
+                Wrong()
+            end
+        elseif button == 2 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
+            UpdateSelectedSquare()
 
-            StartDialogue("wrong")
+            PinGrid[SquareSelected.y][SquareSelected.x] = not PinGrid[SquareSelected.y][SquareSelected.x]
+            if PinGrid[SquareSelected.y][SquareSelected.x] then
+                zutil.playsfx(SFX.pin, .1, 1)
+            else
+                zutil.playsfx(SFX.removePin, .1, 1)
+            end
 
-            AdjustRating("not an anomaly")
+            zutil.playsfx(SFX.pop, .4, 1)
 
-            CalculateGridSize()
-            ClearGoal = zutil.clamp(ClearGoal + 5, 0, CalculateClearGoal())
-            GridGlobalData.generationAnimation.running = true
-            GridGlobalData.generationAnimation.max = 0.22*60
-            GridGlobalData.generationAnimation.becauseWrong = true
+            SaveData()
         end
-    elseif button == 2 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
-        UpdateSelectedSquare()
 
-        PinGrid[SquareSelected.y][SquareSelected.x] = not PinGrid[SquareSelected.y][SquareSelected.x]
-        if PinGrid[SquareSelected.y][SquareSelected.x] then
-            zutil.playsfx(SFX.pin, .1, 1)
-        else
-            zutil.playsfx(SFX.removePin, .1, 1)
+        -- pressing rewards >v<
+        if button == 1 then
+            local i = 1
+            for index, data in ipairs(Rewards) do
+                if RewardsCollected[data.name] then
+                    local rx, ry = GetRewardCoords(index, i)
+                    rx, ry = rx + data.sprite:getWidth()/2, ry + data.sprite:getHeight()/2
+                    if zutil.distance(love.mouse.getX(), love.mouse.getY(), rx, ry) <= data.sprite:getWidth()/1.5 then
+                        zutil.playsfx(SFX.stickerPress, .2, math.random()*3+2)
+
+                        for _ = 1, 10 do
+                            local color = {0,0,0}
+                            color[math.random(#color)] = 1  ;  color[math.random(#color)] = 1
+                            table.insert(Particles, NewParticle(rx, ry, math.random()*4+3, color, math.random()*3+1, math.random(360), .03, math.random(60,100)))
+                        end
+                    end
+
+                    i = i + 1
+                end
+            end
+        end
+    elseif Wheel.running and button == 1 then
+        local nHit = 0
+        local hitSomething = false
+
+        for _, self in ipairs(Wheel.windows) do
+            if self.hit then nHit = nHit + 1
+            elseif Wheel.pointerDegrees >= self.degrees and Wheel.pointerDegrees <= self.degrees + Wheel.windowDegreeWidth then
+                self.hit = true
+                zutil.playsfx(SFX.wheelHit, .3, 1 + nHit)
+                hitSomething = true
+                AdjustRating("hit arc")
+            end
         end
 
-        zutil.playsfx(SFX.pop, .4, 1)
-
-        SaveData()
+        if hitSomething then
+            table.insert(Wheel.goodClicks, Wheel.pointerDegrees)
+        else
+            table.insert(Wheel.badClicks, Wheel.pointerDegrees)
+            zutil.playsfx(SFX.badClick, .5, 1)
+            ShakeIntensity = 5
+        end
     end
+
+    CheckButtonsClicked(button)
+end
+
+function love.wheelmoved(_, y)
+    if Handbook.showing then
+        Handbook.scollYOffset = zutil.clamp(Handbook.scollYOffset + y * 7, -Handbook.pageSprites[1]:getHeight() + WINDOW.HEIGHT - Handbook.yOffset * 2, 0)
+    else
+        SquareGlobalData.width = zutil.clamp(SquareGlobalData.width + y, 5, 30)
+
+        SquareGlobalData.height = SquareGlobalData.width
+    end
+end
+
+function Wrong()
+    zutil.playsfx(SFX.notAnAnomaly, .8, 1)
+
+    StartDialogue("list", "wrong")
+
+    AdjustRating("not an anomaly")
+
+    CalculateGridSize()
+    ClearGoal = zutil.clamp(ClearGoal + 5, 0, CalculateClearGoal())
+    GridGlobalData.generationAnimation.running = true
+    GridGlobalData.generationAnimation.max = 0.22*60
+    GridGlobalData.generationAnimation.becauseWrong = true
+
+    ShakeIntensity = 8
+end
+function CompleteFile()
+    FilesCompleted = FilesCompleted + 1
+    ClearGoal = CalculateClearGoal()
+
+    local sfx = SFX.fileComplete
+    if zutil.weightedbool(12) then
+        sfx = SFX["fileComplete" .. math.random(2,3)]
+    end
+    zutil.playsfx(sfx, .6, 1)
+
+    StartDialogue("list", "completeFile")
+
+    AdjustRating("completed file")
+
+    GridGlobalData.generationAnimation.running = true
+    GridGlobalData.generationAnimation.max = 0.88*60
+    GridGlobalData.generationAnimation.becauseWrong = false
 end

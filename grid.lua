@@ -13,13 +13,14 @@ SquareGlobalData = {
 }
 
 ClearGoal = 0
-TimeLeft = { current = 4, max = 4 } -- in seconds
 
 Trails = {}
 TrailUpdateInterval = { current = 0, max = .2*60 }
 TrailSpawnInterval = { current = 0, max = 30*60 }
 
 FilesCompleted = 0
+
+ConditionsCollected = 2
 
 
 
@@ -41,6 +42,7 @@ function UpdateFileGenerationAnimation()
 
     GridGlobalData.generationAnimation = zutil.updatetimer(GridGlobalData.generationAnimation, function ()
         GridGlobalData.generationAnimation.running = false
+        PlaceAnomalies()
         SaveData()
     end, 1, GlobalDT)
 
@@ -50,15 +52,16 @@ function UpdateFileGenerationAnimation()
 end
 
 function CalculateGridSize()
-    GridGlobalData.width = FilesCompleted + 5
+    GridGlobalData.width = math.floor(FilesCompleted / 3) + 5
     GridGlobalData.height = GridGlobalData.width
 end
 function CalculateClearGoal()
-    local concluded = math.floor(GridGlobalData.width * GridGlobalData.height / 20)
-    return (concluded > 0 and concluded or 1)
+    return math.floor(GridGlobalData.width * GridGlobalData.height / 20)
 end
 
 function DrawGrid()
+    if Wheel.running then return end
+
     local anchorX, anchorY = GetGridAnchorCoords()
     local spacing = 10
     love.graphics.setColor(1,1,1)
@@ -78,10 +81,10 @@ function DrawGrid()
         for squareIndex, pinned in ipairs(row) do
             if pinned then
                 local x, y = GetSquareCoords(squareIndex, rowIndex)
-                local spacing = 10
+                local padding = SquareGlobalData.width / 3
                 -- love.graphics.draw(Sprites.pin, x - 11, y - 20)
-                love.graphics.line(x + spacing, y + spacing, x + SquareGlobalData.width - spacing, y + SquareGlobalData.height - spacing)
-                love.graphics.line(x + SquareGlobalData.width - spacing, y + spacing, x + spacing, y + SquareGlobalData.height - spacing)
+                love.graphics.line(x + padding, y + padding, x + SquareGlobalData.width - padding, y + SquareGlobalData.height - padding)
+                love.graphics.line(x + SquareGlobalData.width - padding, y + padding, x + padding, y + SquareGlobalData.height - padding)
             end
         end
     end
@@ -89,12 +92,6 @@ function DrawGrid()
     love.graphics.setLineWidth(5)
     love.graphics.setColor(0,0,0)
     love.graphics.rectangle("line", anchorX - spacing, anchorY - spacing, #Grid[1] * SquareGlobalData.width + spacing * 2, #Grid * SquareGlobalData.height + spacing * 2)
-end
-
-function love.wheelmoved(_, y)
-    SquareGlobalData.width = zutil.clamp(SquareGlobalData.width + y, 5, 30)
-
-    SquareGlobalData.height = SquareGlobalData.width
 end
 
 function GetGridAnchorCoords()
@@ -111,27 +108,33 @@ function CheckIsAnomaly(x, y)
     if focus == 0 then return false end
 
     local conditionsForAnomaly = {
-        Grid[zutil.clamp(y-1,1,#Grid)][x] == focus and Grid[zutil.clamp(y+1,1,#Grid)][x] == focus,
-        Grid[y][zutil.clamp(x-1,1,#Grid[1])] == 0 and Grid[y][zutil.clamp(x+1,1,#Grid[1])] == 2,
         Grid[zutil.clamp(y-1,1,#Grid[1])][x] == 0 and Grid[zutil.clamp(y+1,1,#Grid[1])][x] == 2,
+        Grid[y][zutil.clamp(x-1,1,#Grid[1])] == 0 and Grid[y][zutil.clamp(x+1,1,#Grid[1])] == 2,
         Grid[zutil.clamp(y-2,1,#Grid)][x] == 0 and Grid[zutil.clamp(y+2,1,#Grid)][x] == 0,
+        Grid[zutil.clamp(y-1,1,#Grid)][x] == focus and Grid[zutil.clamp(y+1,1,#Grid)][x] == focus,
         Grid[zutil.clamp(y+1,1,#Grid)][zutil.clamp(x+1,1,#Grid[1])] == focus and Grid[zutil.clamp(y-1,1,#Grid)][zutil.clamp(x-1,1,#Grid[1])] == focus,
     }
 
     local conditionsForNotAnomaly = {
         Grid[zutil.clamp(y-2,1,#Grid)][x] == 1 and Grid[zutil.clamp(y+2,1,#Grid)][x] == 1,
-        Grid[y][zutil.clamp(x-2,1,#Grid)] == 0 and Grid[y][zutil.clamp(x+2,1,#Grid)] == 0,
     }
 
-    for _, condition in ipairs(conditionsForNotAnomaly) do
-        if condition then
-            return false, nil
+    if ConditionsCollected > #conditionsForAnomaly then
+        local nToIgnore = #conditionsForNotAnomaly - (ConditionsCollected - #conditionsForAnomaly)
+
+        for index, condition in ipairs(conditionsForNotAnomaly) do
+            if index > #conditionsForNotAnomaly - nToIgnore then break end
+            if condition then
+                return false, nil
+            end
         end
     end
 
+    local nToIgnore = zutil.relu(#conditionsForAnomaly - ConditionsCollected)
     local isAnomaly, conditionsMet = false, 0
 
-    for _, condition in ipairs(conditionsForAnomaly) do
+    for index, condition in ipairs(conditionsForAnomaly) do
+        if index > #conditionsForAnomaly - nToIgnore then break end
         if condition then
             isAnomaly = true
             conditionsMet = conditionsMet + 1
@@ -139,6 +142,43 @@ function CheckIsAnomaly(x, y)
     end
 
     return isAnomaly, conditionsMet
+end
+function PlaceAnomalies()
+    for _ = 1, ClearGoal do
+        local positionX, positionY = math.random(3, #Grid[1] - 2), math.random(3, #Grid - 2) -- no anomalies placed within 2 squares of the edges of the grid
+        Grid[positionY][positionX] = math.random(1,2)
+        local focus = Grid[positionY][positionX]
+
+        local funcs = {
+            function ()
+                Grid[positionY-1][positionX] = 0
+                Grid[positionY+1][positionX] = 2
+            end,
+            function ()
+                Grid[positionY][positionX-1] = 0
+                Grid[positionY][positionX+1] = 2
+            end,
+            function ()
+                Grid[positionY-2][positionX] = 0
+                Grid[positionY+2][positionX] = 0
+            end,
+            function ()
+                Grid[positionY-1][positionX] = focus
+                Grid[positionY+1][positionX] = focus
+            end,
+            function ()
+                Grid[positionY-1][positionX-1] = focus
+                Grid[positionY+1][positionX+1] = focus
+            end,
+        }
+
+        local viables = {}
+        for i = 1, ConditionsCollected do
+            table.insert(viables, funcs[i])
+        end
+
+        zutil.randomchoice(funcs)()
+    end
 end
 
 
