@@ -83,10 +83,20 @@ Dialogue = {
             "20 files in the bag. The boss will be happy.",
             "20 files searched and filtrated. Great job. Have a sticker.",
         },
-        gain_filescompleted_30 = {
-            "30 files completed. For you, take a sticker.",
-            "30 files done. Great job.",
-            "30 files all done. I'm proud.",
+        gain_filescompleted_40 = {
+            "40 files completed. For you, take a sticker.",
+            "40 files done. Great job.",
+            "40 files all done. I'm proud.",
+        },
+        gain_filescompleted_70 = {
+            "I see you're really starting to settle in. 70 files done.",
+            "70 files done. Fantastic work.",
+            "70 files done. Such effort I admire.",
+        },
+        gain_filescompleted_100 = {
+            "Wow, 100 files. Most workers don't complete 100 files in the time you did.",
+            "Excellent speed. 100 files done.",
+            "Great effort. You got to 100 files all done.",
         },
     },
     eventual = {
@@ -231,7 +241,8 @@ end
 
 function DrawDialogue()
     local _, y = GetGridAnchorCoords()
-    if Wheel.running then y = WINDOW.CENTER_Y - Wheel.radius end
+    if Wheel.running then y = WINDOW.CENTER_Y - Wheel.radius
+    elseif Screen.running then y = Screen.y end
     y = y - Fonts.dialogue:getHeight() - 20
 
     love.graphics.setColor(Dialogue.playing.color)

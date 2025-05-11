@@ -1,5 +1,16 @@
 zutil = require "zutil"
 lume = require "lume"
+
+love.window.setMode(0, 0, {highdpi=true, msaa=4})
+love.window.setFullscreen(love.system.getOS() == "OS X")
+
+WINDOW = {
+    WIDTH = love.graphics.getWidth(),
+    HEIGHT = love.graphics.getHeight(),
+}
+WINDOW.CENTER_X = WINDOW.WIDTH / 2
+WINDOW.CENTER_Y = WINDOW.HEIGHT / 2
+
 require "grid"
 require "interaction"
 require "particle"
@@ -11,6 +22,7 @@ require "rewards"
 require "button"
 require "handbook"
 require "wheel"
+require "screen"
 
 
 
@@ -20,16 +32,6 @@ function love.load()
     zutil.alwaysrandom()
 
 
-
-    love.window.setMode(0, 0, {highdpi=true, msaa=4})
-    love.window.setFullscreen(love.system.getOS() == "OS X")
-
-    WINDOW = {
-        WIDTH = love.graphics.getWidth(),
-        HEIGHT = love.graphics.getHeight(),
-    }
-    WINDOW.CENTER_X = WINDOW.WIDTH / 2
-    WINDOW.CENTER_Y = WINDOW.HEIGHT / 2
 
     love.window.setTitle(GameName)
     love.filesystem.setIdentity(GameName)
@@ -98,6 +100,7 @@ function love.update(dt)
     UpdateButtons()
     UpdateNewCardIndicator()
     UpdateWheel()
+    UpdateScreen()
     UpdateShake()
 
     SpawnBGParticle()
@@ -126,6 +129,7 @@ function love.draw()
 
     DrawGrid()
     DrawWheel()
+    DrawScreen()
     DrawDisplays()
     DrawParticles()
     DrawCards()

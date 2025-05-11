@@ -1,7 +1,7 @@
 SquareSelected = { x = nil, y = nil } -- the square the mouse is hovering over
 
 function UpdateSelectedSquare()
-    if Wheel.running then return end
+    if Wheel.running or Screen.running then return end
 
     local mx, my = love.mouse.getPosition()
 
@@ -49,16 +49,16 @@ function PopSquare(x, y, conditionsMet)
     SaveData()
 end
 
-function love.mousepressed(x, y, button)
-    if not Handbook.showing and not Wheel.running then
+function love.mousepressed(mx, my, button)
+    if not Handbook.showing and not Wheel.running and not Screen.running then
         if button == 1 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
             UpdateSelectedSquare()
 
             local isAnomaly, conditionsMet = CheckIsAnomaly(SquareSelected.x, SquareSelected.y)
 
             if isAnomaly then
-                if UseSpinners and zutil.weightedbool(100/6) then
-                    StartWheel(conditionsMet)
+                if zutil.weightedbool(100/6) then
+                    _G["Start" .. zutil.randomchoice({"Wheel", "Screen"})](conditionsMet)
                 else
                     PopSquare(SquareSelected.x, SquareSelected.y, conditionsMet)
                 end
@@ -121,6 +121,23 @@ function love.mousepressed(x, y, button)
             table.insert(Wheel.badClicks, Wheel.pointerDegrees)
             zutil.playsfx(SFX.badClick, .5, 1)
             ShakeIntensity = 5
+        end
+    elseif Screen.running and Screen.shutterDone and button == 1 then
+        local hit = false
+        for _, self in ipairs(Screen.dots) do
+            if not self.hit and zutil.distance(self.x + Screen.x, self.y + Screen.y, mx, my) <= Screen.maxError then
+                self.hit = true
+                zutil.playsfx(SFX.screenDot, .3, math.random() * 2 + 2)
+
+                table.insert(Particles, NewParticle(self.x + Screen.x, self.y + Screen.y, Screen.dotRadius, {0,0,0}, 4, math.random(90,270), 0.1, 400))
+
+                hit = true
+            end
+        end
+
+        if not hit then
+            Wrong()
+            Screen.running = false
         end
     end
 

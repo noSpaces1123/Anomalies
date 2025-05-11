@@ -60,7 +60,7 @@ function CalculateClearGoal()
 end
 
 function DrawGrid()
-    if Wheel.running then return end
+    if Wheel.running or Screen.running then return end
 
     local anchorX, anchorY = GetGridAnchorCoords()
     local spacing = 10
