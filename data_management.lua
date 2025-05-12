@@ -15,6 +15,7 @@ function SaveData()
         -- eventualDialoguesTriggered = eventualDialoguesTriggered,
         ConditionsCollected = ConditionsCollected,
         UseSpinners = UseSpinners, UseScreens = UseScreens,
+        WonScreen = WonScreen, WonSpinner = WonSpinner,
         PlayedWheel = WonSpinner,
     }
 

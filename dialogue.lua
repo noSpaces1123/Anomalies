@@ -173,7 +173,7 @@ Dialogue = {
             end
         },
         {
-            text = "From here on out, you have a chance to get a spinner when eradicating an anomaly. I'll show you a practice spinner sometime soon.",
+            text = "From here on out, you have a chance to get a spinner when eradicating an anomaly. Read about it in the handbook.",
             when = function ()
                 local cond = FilesCompleted == 19
                 if cond then UseSpinners = true end
@@ -181,13 +181,13 @@ Dialogue = {
             end
         },
         {
-            text = "Here is your practice spinner. The line has been slowed significantly. Click anywhere on the screen when the moving black line points to a red line. Don't mis-click. After completing the spinner with no mistakes, the anomaly you chose to eradicate will be eradicated.",
+            text = "Here is your practice spinner. The line has been slowed significantly. Take your time.",
             when = function ()
                 return UseSpinners and not WonSpinner and Spinner.running
             end
         },
         {
-            text = "From here on out, you have a chance to get a memory screen when removing an anomaly. A practice memory screen will come up soon.",
+            text = "From here on out, you have a chance to get a memory screen when removing an anomaly. Read about it in the handbook, it's quite simple.",
             when = function ()
                 local cond = FilesCompleted == 24
                 if cond then UseScreens = true end
