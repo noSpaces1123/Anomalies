@@ -50,6 +50,8 @@ function PopSquare(x, y, conditionsMet)
 end
 
 function love.mousepressed(mx, my, button)
+    if GridGlobalData.generationAnimation.running then goto generationAnimationIsRunning end
+
     if not Handbook.showing and not Spinner.running and not Screen.running then
         if button == 1 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
             UpdateSelectedSquare()
@@ -162,6 +164,8 @@ function love.mousepressed(mx, my, button)
             Screen.running = false
         end
     end
+
+    ::generationAnimationIsRunning::
 
     CheckButtonsClicked(button)
 end

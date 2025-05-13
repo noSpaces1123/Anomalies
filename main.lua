@@ -42,6 +42,13 @@ function love.load()
         pin = love.graphics.newImage("assets/sprites/pin.png", {dpiscale=6}),
     }
 
+    Cursors = {
+        normal = love.graphics.newImage("assets/sprites/cursor/normal.png", {dpiscale=3}),
+        clicked = love.graphics.newImage("assets/sprites/cursor/clicked.png", {dpiscale=3}),
+        disallowed = love.graphics.newImage("assets/sprites/cursor/disallowed.png", {dpiscale=3}),
+    }
+    CursorState = "normal"
+
     Fonts = {
         cleargoal = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_SemiExpanded-Light.ttf", 30),
         rating = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 22),
@@ -52,10 +59,17 @@ function love.load()
         dialogue = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 16),
     }
 
-    Music = love.audio.newSource("assets/music/Anomalies.wav", "stream")
-    Music:setLooping(true)
-    Music:setVolume(.2)
-    Music:play()
+    MusicPlaying = nil
+
+    Music = {}
+    local directory = "assets/music"
+    for _, fileName in ipairs(love.filesystem.getDirectoryItems(directory)) do
+        if fileName ~= ".DS_Store" then
+            table.insert(Music, love.audio.newSource(directory .. "/" .. fileName, "stream"))
+        end
+    end
+
+    StartMusic(zutil.randomchoice(Music))
 
 
 
@@ -97,6 +111,7 @@ function love.update(dt)
     UpdateWheel()
     UpdateScreen()
     UpdateShake()
+    UpdateMusic()
 
     SpawnBGParticle()
 
@@ -106,6 +121,8 @@ function love.update(dt)
 
     UpdateRatingSubtraction()
     ReluRating()
+
+    UpdateCursor()
 end
 
 function love.draw()
@@ -132,6 +149,8 @@ function love.draw()
     DrawRewards()
     DrawHandbook()
     DrawButtons()
+
+    DrawCursor()
 end
 
 
@@ -172,4 +191,47 @@ function UpdateShake()
     if ShakeIntensity > 0 then
         ShakeIntensity = zutil.relu(ShakeIntensity - 0.2 * GlobalDT)
     end
+end
+
+function StartMusic(music)
+    MusicPlaying = music
+    MusicPlaying:setVolume(.2)
+    MusicPlaying:play()
+end
+function UpdateMusic()
+---@diagnostic disable-next-line: undefined-field
+    if not MusicPlaying:isPlaying() then
+        local viable = {}
+        for _, value in ipairs(Music) do
+            if value ~= MusicPlaying then
+                table.insert(viable, value)
+            end
+        end
+
+        StartMusic(zutil.randomchoice(viable))
+    end
+end
+
+function UpdateCursor()
+    if love.mouse.isVisible() then
+        love.mouse.setVisible(false)
+    end
+
+    CursorState = "normal"
+
+    if Screen.running and not Screen.shutterDone then
+        CursorState = "disallowed"
+    elseif GridGlobalData.generationAnimation.running then
+        CursorState = "disallowed"
+    elseif Spinner.running then
+        CursorState = "invisible"
+    elseif love.mouse.isDown(1) or love.mouse.isDown(2) or love.mouse.isDown(3) then
+        CursorState = "clicked"
+    end
+end
+function DrawCursor()
+    local sprite = Cursors[CursorState]
+    if CursorState == "invisible" then return end
+    love.graphics.setColor(1,1,1)
+    love.graphics.draw(sprite, love.mouse.getX() - sprite:getWidth() / 2, love.mouse.getY() - sprite:getHeight() / 2)
 end

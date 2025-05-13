@@ -16,6 +16,7 @@ end
 
 function UpdateRatingSubtraction()
     zutil.updatetimer(RatingSubtraction, function ()
+        if Spinner.running or Screen.running then return end
         Rating = Rating - 1
     end, 1, GlobalDT)
 
