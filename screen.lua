@@ -1,6 +1,6 @@
 Screen = {
     x = 0, y = 0, width = 400, height = 500,
-    dots = {}, dotRadius = 4, maxError = 40,
+    dots = {}, dotRadius = 4, maxError = 60,
     shutter = 0, shutterSpeed = 0, shutterDone = false,
     conditionsMetWhenStarted = 0,
     running = false,
@@ -31,6 +31,11 @@ function StartScreen(conditionsMet)
             alpha = 1,
         })
     end
+
+    SFX.shutter:setLooping(true)
+    zutil.playsfx(SFX.shutter, .1, math.random()/10+.9)
+
+    zutil.playsfx(SFX.screenStart, .3, 1)
 end
 
 function UpdateScreen()
@@ -40,6 +45,7 @@ function UpdateScreen()
         Screen.shutter = Screen.shutter + Screen.shutterSpeed * GlobalDT
         if Screen.shutter >= Screen.height then
             Screen.shutterDone = true
+            SFX.shutter:stop()
         end
     end
 
@@ -71,11 +77,18 @@ function DrawScreen()
 
     -- grid
     love.graphics.setLineWidth(1)
-    love.graphics.setColor(.9,.9,.9)
-    for y = Screen.y, Screen.y + Screen.height, 20 do
-        love.graphics.line(Screen.x, y, Screen.x + Screen.width, y)
+
+    local rgb = (Screen.shutterDone and .95 or math.random(80, 95)/100)
+    love.graphics.setColor(rgb,rgb,rgb)
+
+    local limit = (Screen.shutterDone and 20 or zutil.randomchoice({20,40}))
+
+    local screenX = Screen.x + (Screen.shutterDone and 0 or zutil.jitter(2))
+
+    for y = Screen.y, Screen.y + Screen.height, limit do
+        love.graphics.line(screenX, y, screenX + Screen.width, y)
     end
-    for x = Screen.x, Screen.x + Screen.width, 20 do
+    for x = screenX, screenX + Screen.width, limit do
         love.graphics.line(x, Screen.y, x, Screen.y + Screen.height)
     end
 
@@ -85,9 +98,16 @@ function DrawScreen()
 
     -- dots
     for _, self in ipairs(Screen.dots) do
-        if not self.revealed then goto continue end
-        love.graphics.setColor(0,0,0, self.alpha)
-        love.graphics.circle("fill", self.x + Screen.x, self.y + Screen.y, Screen.dotRadius, 500)
+        if self.hit then
+            love.graphics.setColor(0,0,0)
+            for _ = 1, 3 do
+                love.graphics.rectangle("fill", self.x + zutil.jitter(5) + Screen.x, self.y + zutil.jitter(5) + Screen.y, math.random(3,6), math.random(3,6))
+            end
+        else
+            if not self.revealed then goto continue end
+            love.graphics.setColor(0,0,0, self.alpha)
+            love.graphics.circle("fill", self.x + Screen.x, self.y + Screen.y, Screen.dotRadius, 500)
+        end
         ::continue::
     end
 
@@ -95,6 +115,26 @@ function DrawScreen()
     if not Screen.shutterDone then
         love.graphics.setColor(0,0,0)
         love.graphics.setLineWidth(1)
-        love.graphics.line(Screen.x, Screen.y + Screen.shutter, Screen.x + Screen.width, Screen.y + Screen.shutter)
+
+        local y = Screen.y + Screen.shutter + (zutil.jitter(2))
+        love.graphics.line(Screen.x, y, Screen.x + Screen.width, y)
+
+        -- random numbers on the sides
+        local makeNumbers = function ()
+            local text = ""
+            for _ = 1, Screen.height / Fonts.small:getHeight() do
+                text = text .. zutil.floor(math.random() * 100, -2) .. "\n"
+            end
+            return text
+        end
+
+        local text1 = makeNumbers()
+        local text2 = makeNumbers()
+
+        local spacing = 5
+
+        love.graphics.setFont(Fonts.small)
+        love.graphics.print(text1, Screen.x + Screen.width + spacing, Screen.y + spacing)
+        love.graphics.printf(text2, 0, Screen.y + spacing, Screen.x - spacing, "right")
     end
 end

@@ -119,13 +119,31 @@ function love.mousepressed(mx, my, button)
             end
         end
 
+        local x = math.sin(math.rad(Spinner.pointerDegrees)) * (Spinner.radius + Spinner.radiusPop.radiusAddition) + WINDOW.CENTER_X
+        local y = math.cos(math.rad(Spinner.pointerDegrees)) * (Spinner.radius + Spinner.radiusPop.radiusAddition) + WINDOW.CENTER_Y
+        local color
+
         if hitSomething then
             table.insert(Spinner.goodClicks, Spinner.pointerDegrees)
+
+            color = {0,1,0}
         else
             table.insert(Spinner.badClicks, Spinner.pointerDegrees)
             zutil.playsfx(SFX.badClick, .5, 1)
             ShakeIntensity = 5
+            Spinner.pointerSpeed = Spinner.pointerSpeed * 3
+            Spinner.stoppingPoints = {}
+            Spinner.shake = 5
+
+            color = {1,0,0}
         end
+
+        for _ = 1, 30 do
+            table.insert(Particles, NewParticle(x, y, math.random()*3+2, color, math.random()*9+3, Spinner.pointerDegrees + zutil.jitter(30), .03, math.random(300,600)))
+        end
+
+        Spinner.radiusPop.current = 1
+        Spinner.radiusPop.running = true
     elseif Screen.running and Screen.shutterDone and button == 1 then
         local hit = false
         for _, self in ipairs(Screen.dots) do

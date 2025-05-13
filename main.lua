@@ -1,7 +1,6 @@
 zutil = require "zutil"
 lume = require "lume"
 
-love.window.setMode(0, 0, {highdpi=true, msaa=4})
 love.window.setFullscreen(love.system.getOS() == "OS X")
 
 WINDOW = {
@@ -33,9 +32,6 @@ function love.load()
 
 
 
-    love.window.setTitle(GameName)
-    love.filesystem.setIdentity(GameName)
-
     love.graphics.setBackgroundColor(1,1,1,1)
 
 
@@ -51,7 +47,7 @@ function love.load()
         rating = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 22),
         normal = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-ExtraLight.ttf", 16),
         handbook = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Bold.ttf", 16),
-        small = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-ExtraLight.ttf", 8),
+        small = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-ExtraLight.ttf", 10),
         big = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-ExtraLight.ttf", 50),
         dialogue = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 16),
     }

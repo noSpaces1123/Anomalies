@@ -1,12 +1,17 @@
 Spinner = {
+    running = false,
+
     pointerDegrees = 0, pointerSpeed = 0,
     windows = {}, windowDegreeWidth = 25,
+
     badClicks = {},
     goodClicks = {},
     stoppingPoints = {},
-    running = false,
 
     radius = 200,
+    radiusPop = { running = false, current = 0, easing = zutil.easing.easeInExpo, radiusAddition = 10 },
+
+    shake = 0,
 
     conditionsMetWhenStarted = 0,
 }
@@ -21,6 +26,8 @@ function StartWheel(conditionsMet)
     Spinner.pointerSpeed = 0
     Spinner.goodClicks = {}
     Spinner.badClicks = {}
+    Spinner.radiusPop.running = true
+    Spinner.radiusPop.current = 1
     Spinner.running = true
 
     zutil.playsfx(SFX.wheelStart, .4, 1)
@@ -51,6 +58,7 @@ function UpdateWheel()
         if not self.hit and Spinner.pointerDegrees <= self.degrees then
             self.hit = true
             Spinner.pointerSpeed = zutil.relu(Spinner.pointerSpeed - math.random(2,4))
+            zutil.playsfx(SFX.wheelSlow, .2, 1 + math.random() / 2)
         end
     end
 
@@ -69,38 +77,52 @@ function UpdateWheel()
             PopSquare(SquareSelected.x, SquareSelected.y, Spinner.conditionsMetWhenStarted)
         end
     end
+
+    if Spinner.shake > 0 then
+        Spinner.shake = zutil.relu(Spinner.shake - 0.1 * GlobalDT)
+    end
+
+
+
+    -- radius pop
+    if not Spinner.radiusPop.running then return end
+
+    Spinner.radiusPop.current = zutil.relu(Spinner.radiusPop.current - .07 * GlobalDT)
 end
 
 function DrawWheel()
     if not Spinner.running then return end
 
+    local radius = Spinner.radius + (Spinner.radiusPop.running and Spinner.radiusPop.easing(Spinner.radiusPop.current) * Spinner.radiusPop.radiusAddition or 0)
+    local spinnerX = WINDOW.CENTER_X + zutil.jitter(Spinner.shake)
+
     love.graphics.setColor(1,1,1)
-    love.graphics.circle("fill", WINDOW.CENTER_X, WINDOW.CENTER_Y, Spinner.radius, 1000)
+    love.graphics.circle("fill", spinnerX, WINDOW.CENTER_Y, radius, 1000)
 
     love.graphics.setColor(0,0,0)
     love.graphics.setLineWidth(5)
-    love.graphics.circle("line", WINDOW.CENTER_X, WINDOW.CENTER_Y, Spinner.radius, 1000)
+    love.graphics.circle("line", spinnerX, WINDOW.CENTER_Y, radius, 1000)
 
 
     love.graphics.setColor(0,0,0, (1 - Spinner.pointerDegrees / 360) / 2)
     love.graphics.setLineWidth(2)
-    love.graphics.line(WINDOW.CENTER_X, WINDOW.CENTER_Y,   WINDOW.CENTER_X, WINDOW.CENTER_Y + Spinner.radius)
+    love.graphics.line(spinnerX, WINDOW.CENTER_Y,   spinnerX, WINDOW.CENTER_Y + radius)
 
     -- pointer
-    local lineEndX = math.sin(math.rad(Spinner.pointerDegrees)) * Spinner.radius + WINDOW.CENTER_X
-    local lineEndY = math.cos(math.rad(Spinner.pointerDegrees)) * Spinner.radius + WINDOW.CENTER_Y
+    local lineEndX = math.sin(math.rad(Spinner.pointerDegrees)) * radius + spinnerX
+    local lineEndY = math.cos(math.rad(Spinner.pointerDegrees)) * radius + WINDOW.CENTER_Y
     love.graphics.setColor(0,0,0)
     love.graphics.setLineWidth(5)
-    love.graphics.line(WINDOW.CENTER_X, WINDOW.CENTER_Y,   lineEndX, lineEndY)
-    love.graphics.circle("fill", WINDOW.CENTER_X, WINDOW.CENTER_Y, 2.5)
+    love.graphics.line(spinnerX, WINDOW.CENTER_Y,   lineEndX, lineEndY)
+    love.graphics.circle("fill", spinnerX, WINDOW.CENTER_Y, 2.5)
 
     -- stopping points
     love.graphics.setLineWidth(3)
     for _, self in ipairs(Spinner.stoppingPoints) do
         if self.hit then goto continue end
-        local x, y = math.sin(math.rad(self.degrees)) * Spinner.radius, math.cos(math.rad(self.degrees)) * Spinner.radius
+        local x, y = math.sin(math.rad(self.degrees)) * radius, math.cos(math.rad(self.degrees)) * radius
         love.graphics.setColor(0,0,0,.3)
-        love.graphics.line(WINDOW.CENTER_X, WINDOW.CENTER_Y, x + WINDOW.CENTER_X, y + WINDOW.CENTER_Y)
+        love.graphics.line(spinnerX, WINDOW.CENTER_Y, x + spinnerX, y + WINDOW.CENTER_Y)
         ::continue::
     end
 
@@ -108,7 +130,7 @@ function DrawWheel()
     love.graphics.setLineWidth(10)
     for _, self in ipairs(Spinner.windows) do
         love.graphics.setColor((self.hit and {0,1,0} or {1,0,0}))
-        love.graphics.arc("line", "open", WINDOW.CENTER_X, WINDOW.CENTER_Y, Spinner.radius, math.rad(360 - (self.degrees + 90) + 180), math.rad(360 - (self.degrees + Spinner.windowDegreeWidth + 90) + 180), 1000)
+        love.graphics.arc("line", "open", spinnerX, WINDOW.CENTER_Y, radius, math.rad(360 - (self.degrees + 90) + 180), math.rad(360 - (self.degrees + Spinner.windowDegreeWidth + 90) + 180), 1000)
 
         -- love.graphics.print(self.degrees, love.mouse.getX() + 100 * i, love.mouse.getY())
     end
@@ -116,20 +138,20 @@ function DrawWheel()
     -- bad clicks
     love.graphics.setLineWidth(1)
     for _, self in ipairs(Spinner.badClicks) do
-        local x, y = math.sin(math.rad(self)) * Spinner.radius, math.cos(math.rad(self)) * Spinner.radius
+        local x, y = math.sin(math.rad(self)) * radius, math.cos(math.rad(self)) * radius
         love.graphics.setColor(1,0,0)
-        love.graphics.circle("fill", x + WINDOW.CENTER_X, y + WINDOW.CENTER_Y, 5)
+        love.graphics.circle("fill", x + spinnerX, y + WINDOW.CENTER_Y, 5)
 
         x, y = x * 10, y * 10
         love.graphics.setColor(1,0,0,.3)
-        love.graphics.line(WINDOW.CENTER_X, WINDOW.CENTER_Y, x + WINDOW.CENTER_X, y + WINDOW.CENTER_Y)
+        love.graphics.line(spinnerX, WINDOW.CENTER_Y, x + spinnerX, y + WINDOW.CENTER_Y)
     end
 
     -- good clicks
     for _, self in ipairs(Spinner.goodClicks) do
-        local x, y = math.sin(math.rad(self)) * Spinner.radius, math.cos(math.rad(self)) * Spinner.radius
+        local x, y = math.sin(math.rad(self)) * radius, math.cos(math.rad(self)) * radius
         x, y = x * 10, y * 10
         love.graphics.setColor(0,1,0,.3)
-        love.graphics.line(WINDOW.CENTER_X, WINDOW.CENTER_Y, x + WINDOW.CENTER_X, y + WINDOW.CENTER_Y)
+        love.graphics.line(spinnerX, WINDOW.CENTER_Y, x + spinnerX, y + WINDOW.CENTER_Y)
     end
 end
