@@ -8,8 +8,9 @@ Dialogue = {
         running = false,
     },
     peopleColors = {
-        ["foster"] = {0,0,0},
-        ["michael"] = {1,0,0},
+        ["foster"] = Colors[CurrentDepartment].text,
+        ["michael"] = {0,1,.5},
+        ["noir"] = {221/255, 45/255, 74/255},
     },
     list = {
         greeting = {
@@ -103,19 +104,19 @@ Dialogue = {
         {
             text = "My name is Jamie Foster. I'm sort of your boss. I'll be supervising you. Check your handbook for how to do your job.",
             when = function ()
-                return FilesCompleted == 0
+                return CurrentDepartment == "A" and FilesCompleted == 0
             end
         },
         {
             text = "Rating is a thing. See in the top-right? It changes with how well you work. Don't worry, it doesn't go below 0.",
             when = function ()
-                return FilesCompleted == 3
+                return CurrentDepartment == "A" and FilesCompleted == 3
             end
         },
         {
             text = "Check your cards. You've gained a new way to identify an anomaly.",
             when = function ()
-                local cond = FilesCompleted == 4
+                local cond = CurrentDepartment == "A" and FilesCompleted == 4
                 if cond then ConditionsCollected = 3 end
                 return cond
             end
@@ -123,13 +124,13 @@ Dialogue = {
         {
             text = "Hey there, my name's Michael. Weird job, right? ... It gets kinda fun.", person = "michael",
             when = function ()
-                return FilesCompleted == 5
+                return CurrentDepartment == "A" and FilesCompleted == 5
             end
         },
         {
             text = "Check your cards. You've got another new way to find anomalies.",
             when = function ()
-                local cond = FilesCompleted == 6
+                local cond = CurrentDepartment == "A" and FilesCompleted == 6
                 if cond then ConditionsCollected = 4 end
                 return cond
             end
@@ -141,7 +142,7 @@ Dialogue = {
                 for _, value in pairs(RewardsCollected) do
                     if value then collected = true break end
                 end
-                return FilesCompleted == 7 and not collected
+                return CurrentDepartment == "A" and FilesCompleted == 7 and not collected
             end
         },
         {
@@ -149,25 +150,25 @@ Dialogue = {
             when = function ()
                 local cond = FilesCompleted == 9
                 if cond then ConditionsCollected = 5 end
-                return cond
+                return CurrentDepartment == "A" and cond
             end
         },
         {
             text = "Mr Foster's a bit of a weird guy. He doesn't have any photos of his family on his desk- or any personal belongings for that matter.", person = "michael",
             when = function ()
-                return FilesCompleted == 11
+                return CurrentDepartment == "A" and FilesCompleted == 11
             end
         },
         {
             text = "Don't believe everything Mr Foster has to say. Moriel Incorporated is known amongst us for hiding information...", person = "michael",
             when = function ()
-                return FilesCompleted == 12
+                return CurrentDepartment == "A" and FilesCompleted == 12
             end
         },
         {
             text = "You've gained a new kind of card. Check your cards. The red cards describe squares of which are NEVER anomalies.",
             when = function ()
-                local cond = FilesCompleted == 15
+                local cond = CurrentDepartment == "A" and FilesCompleted == 15
                 if cond then ConditionsCollected = 6 end
                 return cond
             end
@@ -175,7 +176,7 @@ Dialogue = {
         {
             text = "From here on out, you have a chance to get a spinner when eradicating an anomaly. Read about it in the handbook.",
             when = function ()
-                local cond = FilesCompleted == 19
+                local cond = CurrentDepartment == "A" and FilesCompleted == 19
                 if cond then UseSpinners = true end
                 return cond
             end
@@ -183,14 +184,72 @@ Dialogue = {
         {
             text = "Here is your practice spinner. The line has been slowed significantly. Take your time.",
             when = function ()
-                return UseSpinners and not WonSpinner and Spinner.running
+                return CurrentDepartment == "A" and UseSpinners and not WonSpinner and Spinner.running
             end
         },
         {
             text = "From here on out, you have a chance to get a memory screen when removing an anomaly. Read about it in the handbook, it's quite simple.",
             when = function ()
-                local cond = FilesCompleted == 24
+                local cond = CurrentDepartment == "A" and FilesCompleted == 24
                 if cond then UseScreens = true end
+                return cond
+            end
+        },
+
+        {
+            text = "Wake up.", person = "noir",
+            when = function ()
+                return CurrentDepartment == "A" and DepartmentTransition.running and DepartmentTransition.currentPhase == 2
+            end
+        },
+
+        {
+            text = "Welcome to Cleansing Department B. Look at your cards, they're not the same as in Department A.", person = "noir",
+            when = function ()
+                return CurrentDepartment == "B" and FilesCompleted == 0
+            end
+        },
+        {
+            text = "I'm sure you have a lot of questions. There's not time. You may not slack off and relax here as you did in Department A.", person = "noir",
+            when = function ()
+                return CurrentDepartment == "B" and FilesCompleted == 1
+            end
+        },
+        {
+            text = "Since time is more precious here, your spinners and memory screens will move faster. Stay focused.", person = "noir",
+            when = function ()
+                return CurrentDepartment == "B" and FilesCompleted == 2
+            end
+        },
+        {
+            text = "Here's a new card.", person = "noir",
+            when = function ()
+                local cond = CurrentDepartment == "B" and FilesCompleted == 3
+                if cond then ConditionsCollected = 3 end
+                return cond
+            end
+        },
+        {
+            text = "Good work.", person = "noir",
+            when = function ()
+                local cond = CurrentDepartment == "B" and FilesCompleted == 6
+                if cond then ConditionsCollected = 4 end
+                return cond
+            end
+        },
+        {
+            text = "New card. Check.", person = "noir",
+            when = function ()
+                local cond = CurrentDepartment == "B" and FilesCompleted == 9
+                if cond then ConditionsCollected = 5 end
+                return cond
+            end
+        },
+        {
+            text = "Hey! I just moved to Department B. Mr Noir asked me to give this new card to you.", person = "michael",
+            when = function ()
+                local cond = CurrentDepartment == "B" and FilesCompleted == 12
+                if cond then ConditionsCollected = 6 end
                 return cond
             end
         },
@@ -235,6 +294,8 @@ function UpdateDialogue()
 end
 
 function StartDialogue(type, category_OR_eventualIndex)
+    if type == "list" and CurrentDepartment ~= "A" then return end
+
     Dialogue.playing.running = true
     Dialogue.playing.textThusFar = ""
     Dialogue.playing.charInterval.current = 0
@@ -255,7 +316,8 @@ end
 
 function DrawDialogue()
     local _, y = GetGridAnchorCoords()
-    if Spinner.running then y = WINDOW.CENTER_Y - Spinner.radius
+    if DepartmentTransition.running then y = WINDOW.CENTER_Y
+    elseif Spinner.running then y = WINDOW.CENTER_Y - Spinner.radius
     elseif Screen.running then y = Screen.y end
     y = y - Fonts.dialogue:getHeight() - 20
 

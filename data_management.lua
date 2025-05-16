@@ -17,6 +17,7 @@ function SaveData()
         UseSpinners = UseSpinners, UseScreens = UseScreens,
         WonScreen = WonScreen, WonSpinner = WonSpinner,
         PlayedWheel = WonSpinner,
+        CurrentDepartment = CurrentDepartment,
     }
 
     local encoded = love.data.encode("string", "base64", lume.serialize(data))

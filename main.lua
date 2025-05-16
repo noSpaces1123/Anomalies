@@ -13,6 +13,7 @@ WINDOW.CENTER_Y = WINDOW.HEIGHT / 2
 require "grid"
 require "interaction"
 require "particle"
+require "department"
 require "cards"
 require "data_management"
 require "dialogue"
@@ -29,10 +30,6 @@ function love.load()
     GameName = "Anomalies"
 
     zutil.alwaysrandom()
-
-
-
-    love.graphics.setBackgroundColor(1,1,1,1)
 
 
 
@@ -61,16 +58,6 @@ function love.load()
 
     MusicPlaying = nil
 
-    Music = {}
-    local directory = "assets/music"
-    for _, fileName in ipairs(love.filesystem.getDirectoryItems(directory)) do
-        if fileName ~= ".DS_Store" then
-            table.insert(Music, love.audio.newSource(directory .. "/" .. fileName, "stream"))
-        end
-    end
-
-    StartMusic(zutil.randomchoice(Music))
-
 
 
     Particles = {}
@@ -83,6 +70,14 @@ function love.load()
     PlaceAnomalies()
 
     LoadData()
+
+    -- FilesCompleted = 34
+    -- ConditionsCollected = 6
+
+    LoadCards()
+
+    LoadMusic()
+    StartMusic(zutil.randomchoice(Music))
 
     InitialiseButtons()
 
@@ -112,6 +107,7 @@ function love.update(dt)
     UpdateScreen()
     UpdateShake()
     UpdateMusic()
+    UpdateDepartmentTransition()
 
     SpawnBGParticle()
 
@@ -126,29 +122,40 @@ function love.update(dt)
 end
 
 function love.draw()
+    if DepartmentTransition.running then
+        love.graphics.setBackgroundColor(0,0,0)
+    elseif GridGlobalData.generationAnimation.running and GridGlobalData.generationAnimation.becauseWrong then
+        love.graphics.setBackgroundColor(1,0,0)
+    else
+        love.graphics.setBackgroundColor(Colors[CurrentDepartment].bg)
+    end
+
+    DrawFrame()
+end
+function DrawFrame()
     love.graphics.origin()
     love.graphics.translate(zutil.jitter(ShakeIntensity), zutil.jitter(ShakeIntensity))
 
-    if GridGlobalData.generationAnimation.running and GridGlobalData.generationAnimation.becauseWrong then
-        love.graphics.setBackgroundColor(1,0,0)
-    else
-        love.graphics.setBackgroundColor(1,1,1)
+    if not DepartmentTransition.running then
+        for _, self in ipairs(BGParticles) do
+            self:draw()
+        end
+
+        DrawGrid()
+        DrawWheel()
+        DrawScreen()
+        DrawDisplays()
+        DrawParticles()
+        DrawCards()
+        DrawRewards()
     end
 
-    for _, self in ipairs(BGParticles) do
-        self:draw()
-    end
-
-    DrawGrid()
-    DrawWheel()
-    DrawScreen()
-    DrawDisplays()
-    DrawParticles()
-    DrawCards()
     DrawDialogue()
-    DrawRewards()
-    DrawHandbook()
-    DrawButtons()
+
+    if not DepartmentTransition.running then
+        DrawHandbook()
+        DrawButtons()
+    end
 
     DrawCursor()
 end
@@ -158,8 +165,9 @@ end
 function DrawDisplays()
     local spacing = 10
 
+    love.graphics.setColor(Colors[CurrentDepartment].text)
+
     if CalculateClearGoal() > 1 then
-        love.graphics.setColor(0,0,0)
         love.graphics.setFont(Fonts.cleargoal)
         love.graphics.print("CLEAR " .. ClearGoal .. " MORE ANOMAL" .. (ClearGoal == 1 and "Y" or "IES"), spacing, spacing)
 
@@ -179,7 +187,9 @@ end
 function SpawnBGParticle()
     local x, y = math.random(0, WINDOW.WIDTH), math.random(0, WINDOW.HEIGHT)
 
-    table.insert(BGParticles, NewParticle(x, y, math.random()*3+1, {0,0,0,1}, math.random()/4, math.deg(zutil.anglebetween(x, y, WINDOW.CENTER_X, WINDOW.CENTER_Y)), 0,
+    local color = {Colors[CurrentDepartment].bgParticles[1],Colors[CurrentDepartment].bgParticles[2],Colors[CurrentDepartment].bgParticles[3]}
+
+    table.insert(BGParticles, NewParticle(x, y, math.random()*3+1, color, math.random()/4, math.deg(zutil.anglebetween(x, y, WINDOW.CENTER_X, WINDOW.CENTER_Y)), 0,
     math.random(100, 300), function (self)
         if self.lifespan >= self.startingLifespan - 100 then
             self.color[4] = (self.startingLifespan - self.lifespan) / 100 * .2
@@ -193,12 +203,23 @@ function UpdateShake()
     end
 end
 
+function LoadMusic()
+    Music = {}
+    local directory = "assets/music/department " .. CurrentDepartment
+    for _, fileName in ipairs(love.filesystem.getDirectoryItems(directory)) do
+        if fileName ~= ".DS_Store" then
+            table.insert(Music, love.audio.newSource(directory .. "/" .. fileName, "stream"))
+        end
+    end
+end
 function StartMusic(music)
     MusicPlaying = music
     MusicPlaying:setVolume(.2)
     MusicPlaying:play()
 end
 function UpdateMusic()
+    if DepartmentTransition.running then return end
+
 ---@diagnostic disable-next-line: undefined-field
     if not MusicPlaying:isPlaying() then
         local viable = {}
@@ -208,7 +229,11 @@ function UpdateMusic()
             end
         end
 
-        StartMusic(zutil.randomchoice(viable))
+        if #viable > 0 then
+            StartMusic(zutil.randomchoice(viable))
+        else
+            StartMusic(MusicPlaying)
+        end
     end
 end
 
@@ -223,7 +248,7 @@ function UpdateCursor()
         CursorState = "disallowed"
     elseif GridGlobalData.generationAnimation.running then
         CursorState = "disallowed"
-    elseif Spinner.running then
+    elseif Spinner.running or DepartmentTransition.running then
         CursorState = "invisible"
     elseif love.mouse.isDown(1) or love.mouse.isDown(2) or love.mouse.isDown(3) then
         CursorState = "clicked"

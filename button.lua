@@ -97,11 +97,20 @@ end
 
 function InitialiseButtons()
     local spacing, width, height = 10, 130, 40
-    NewButton("", spacing + 20, WINDOW.HEIGHT - height - spacing, width, height, "center", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.normal, 1, 5, 5, function ()
+    NewButton("", spacing + 20, WINDOW.HEIGHT - height - spacing, width, height, "left", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.normal, 1, 5, 5, function ()
         Handbook.showing = not Handbook.showing
     end, function (self)
         self.text = (Handbook.showing and "Close" or "Handbook")
     end, function ()
         return true
     end)
+
+    -- height = 30
+    -- NewButton("", spacing + 20, WINDOW.HEIGHT - height - spacing * 2 - 40, width, height, "left", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function (self)
+    --     self.pressed = true
+    -- end, function (self)
+    --     self.text = (self.pressed and "Not available" or "File complaint")
+    -- end, function ()
+    --     return true
+    -- end)
 end

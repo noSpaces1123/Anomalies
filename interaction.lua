@@ -24,7 +24,8 @@ function PopSquare(x, y, conditionsMet)
     local squareX, squareY = GetSquareCoords(x, y)
     for _ = 1, 30 do
         local rgb = 1-Grid[y][x]/2
-        table.insert(Particles, NewParticle(squareX+SquareGlobalData.width/2, squareY+SquareGlobalData.height/2, math.random()*8+2, {rgb,rgb,rgb}, math.random(6,15), math.random(360), 0, math.random(20,50), function (self)
+        local color = (Grid[y][x] == 3 and {Colors[CurrentDepartment].type3Square[1],Colors[CurrentDepartment].type3Square[2],Colors[CurrentDepartment].type3Square[3]} or {rgb,rgb,rgb})
+        table.insert(Particles, NewParticle(squareX+SquareGlobalData.width/2, squareY+SquareGlobalData.height/2, math.random()*8+2, color, math.random(6,15), math.random(360), 0, math.random(20,50), function (self)
             if self.speed > 0 then
                 self.speed = self.speed - 0.3 * GlobalDT
                 if self.speed <= 0 then
@@ -41,7 +42,10 @@ function PopSquare(x, y, conditionsMet)
     ClearGoal = ClearGoal - 1
 
     if ClearGoal <= 0 then
-        CompleteFile()
+        if FilesCompleted < 35 then CompleteFile()
+        else
+            StartDepartmentTransition()
+        end
     else
         AdjustRating("anomaly found", conditionsMet)
     end
@@ -50,6 +54,7 @@ function PopSquare(x, y, conditionsMet)
 end
 
 function love.mousepressed(mx, my, button)
+    if DepartmentTransition.running then return end
     if GridGlobalData.generationAnimation.running then goto generationAnimationIsRunning end
 
     if not Handbook.showing and not Spinner.running and not Screen.running then
@@ -153,7 +158,7 @@ function love.mousepressed(mx, my, button)
                 self.hit = true
                 zutil.playsfx(SFX.screenDot, .3, math.random() * 2 + 2)
 
-                table.insert(Particles, NewParticle(self.x + Screen.x, self.y + Screen.y, Screen.dotRadius, {0,0,0}, 4, math.random(90,270), 0.1, 400))
+                table.insert(Particles, NewParticle(self.x + Screen.x, self.y + Screen.y, Screen.dotRadius, {Colors[CurrentDepartment].screenDots[1],Colors[CurrentDepartment].screenDots[2],Colors[CurrentDepartment].screenDots[3]}, 4, math.random(90,270), 0.1, 400))
 
                 hit = true
             end

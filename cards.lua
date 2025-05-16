@@ -1,10 +1,84 @@
-Cards = {}
-local directory = "assets/sprites/cards"
-for _, fileName in ipairs(love.filesystem.getDirectoryItems(directory)) do
-    if fileName ~= ".DS_Store" then
-        table.insert(Cards, love.graphics.newImage(directory.."/"..fileName, {dpiscale = 5}))
-    end
-end
+AllConditions = {
+    A = {
+        {
+            parts = {
+                { offset = { y = -1, x = 0 }, type = 0 },
+                { offset = { y = 1, x = 0 }, type = 2 }
+            }
+        },
+        {
+            parts = {
+                { offset = { y = 0, x = -1 }, type = 0 },
+                { offset = { y = 0, x = 1 }, type = 2 }
+            }
+        },
+        {
+            parts = {
+                { offset = { y = -2, x = 0 }, type = 0 },
+                { offset = { y = 2, x = 0 }, type = 0 }
+            }
+        },
+        {
+            parts = {
+                { offset = { y = -1, x = 0 }, type = -1 },
+                { offset = { y = 1, x = 0 }, type = -1 }
+            }
+        },
+        {
+            parts = {
+                { offset = { y = -1, x = -1 }, type = -1 },
+                { offset = { y = 1, x = 1 }, type = -1 }
+            }
+        },
+        {
+            parts = {
+                { offset = { y = -2, x = 0 }, type = 1 },
+                { offset = { y = 2, x = 0 }, type = 1 }
+            },
+            isNot = true
+        },
+    },
+
+    B = {
+        {
+            parts = {
+                { offset = { y = -1, x = -2 }, type = 0 },
+                { offset = { y = 1, x = 2 }, type = 0 }
+            }
+        },
+        {
+            parts = {
+                { offset = { y = -1, x = 0 }, type = 3 },
+                { offset = { y = 2, x = 0 }, type = 0 }
+            }
+        },
+        {
+            parts = {
+                { offset = { y = 0, x = -1 }, type = -1 },
+                { offset = { y = 0, x = 1 }, type = -1 }
+            }
+        },
+        {
+            parts = {
+                { offset = { y = 0, x = -1 }, type = 3 },
+                { offset = { y = 0, x = 1 }, type = 1 }
+            }
+        },
+        {
+            parts = {
+                { offset = { y = 1, x = 0 }, type = 3 },
+                { offset = { y = 0, x = -1 }, type = 0 }
+            }
+        },
+        {
+            parts = {
+                { offset = { y = -1, x = 0 }, type = -1 },
+                { offset = { y = 1, x = 0 }, type = -1 }
+            },
+            isNot = true,
+        },
+    },
+}
 
 NewCardIndicator = {
     on = false,
@@ -13,6 +87,20 @@ NewCardIndicator = {
 }
 
 
+
+function LoadCards()
+    Cards = {}
+    local directory = "assets/sprites/cards/department " .. CurrentDepartment
+    local peskyDSSTore = false
+    for index, fileName in ipairs(love.filesystem.getDirectoryItems(directory)) do
+        if fileName == ".DS_Store" then
+            peskyDSSTore = true
+        else
+            local fileDir = directory.."/".. index - (peskyDSSTore and 1 or 0) ..".png"
+            table.insert(Cards, { sprite = love.graphics.newImage(fileDir, {dpiscale = 5}), condition = AllConditions[CurrentDepartment][index - (peskyDSSTore and 1 or 0)] })
+        end
+    end
+end
 
 function DrawCards()
     local maxDistance = 40
@@ -23,7 +111,7 @@ function DrawCards()
 
     local spacing = 10
     local spacingBetweenCards = 5
-    local anchorX, anchorY = WINDOW.CENTER_X - ConditionsCollected / 2 * Cards[1]:getWidth(), WINDOW.HEIGHT - spacing - Cards[1]:getHeight() + (1 - alpha) * Cards[1]:getWidth()
+    local anchorX, anchorY = WINDOW.CENTER_X - ConditionsCollected / 2 * Cards[1].sprite:getWidth(), WINDOW.HEIGHT - spacing - Cards[1].sprite:getHeight() + (1 - alpha) * Cards[1].sprite:getWidth()
 
     spacing = 300
     love.graphics.setColor(0,0,0, 1 - alpha)
@@ -34,7 +122,7 @@ function DrawCards()
     love.graphics.setColor(1,1,1, alpha)
     for index, card in ipairs(Cards) do
         if index > ConditionsCollected then break end
-        love.graphics.draw(card, anchorX + (index - 1) * (card:getWidth() + spacingBetweenCards), anchorY)
+        love.graphics.draw(card.sprite, anchorX + (index - 1) * (card.sprite:getWidth() + spacingBetweenCards), anchorY)
     end
 
     DrawNewCardIndicator()

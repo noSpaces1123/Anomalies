@@ -52,7 +52,7 @@ function UpdateWheel()
     if not Spinner.running then return end
 
     Spinner.pointerDegrees = Spinner.pointerDegrees - Spinner.pointerSpeed * GlobalDT
-    Spinner.pointerSpeed = Spinner.pointerSpeed + .04 * GlobalDT * (WonSpinner and 1 or .03)
+    Spinner.pointerSpeed = Spinner.pointerSpeed + DepartmentData[CurrentDepartment].pointerAcceleration * GlobalDT * (WonSpinner and 1 or .03)
 
     for _, self in ipairs(Spinner.stoppingPoints) do
         if not self.hit and Spinner.pointerDegrees <= self.degrees then
@@ -96,10 +96,10 @@ function DrawWheel()
     local radius = Spinner.radius + (Spinner.radiusPop.running and Spinner.radiusPop.easing(Spinner.radiusPop.current) * Spinner.radiusPop.radiusAddition or 0)
     local spinnerX = WINDOW.CENTER_X + zutil.jitter(Spinner.shake)
 
-    love.graphics.setColor(1,1,1)
+    love.graphics.setColor(Colors[CurrentDepartment].fileBg)
     love.graphics.circle("fill", spinnerX, WINDOW.CENTER_Y, radius, 1000)
 
-    love.graphics.setColor(0,0,0)
+    love.graphics.setColor(Colors[CurrentDepartment].fileOutline)
     love.graphics.setLineWidth(5)
     love.graphics.circle("line", spinnerX, WINDOW.CENTER_Y, radius, 1000)
 
@@ -111,7 +111,7 @@ function DrawWheel()
     -- pointer
     local lineEndX = math.sin(math.rad(Spinner.pointerDegrees)) * radius + spinnerX
     local lineEndY = math.cos(math.rad(Spinner.pointerDegrees)) * radius + WINDOW.CENTER_Y
-    love.graphics.setColor(0,0,0)
+    love.graphics.setColor(Colors[CurrentDepartment].squares)
     love.graphics.setLineWidth(5)
     love.graphics.line(spinnerX, WINDOW.CENTER_Y,   lineEndX, lineEndY)
     love.graphics.circle("fill", spinnerX, WINDOW.CENTER_Y, 2.5)

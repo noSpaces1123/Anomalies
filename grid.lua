@@ -10,6 +10,7 @@ GridGlobalData = {
 }
 SquareGlobalData = {
     width = 30, height = 30,-- in px
+    defaultWidth = 30, defaultHeight = 30,
 }
 
 ClearGoal = 0
@@ -27,11 +28,18 @@ ConditionsCollected = 2
 function NewFile()
     CalculateGridSize()
 
+    Trails = {}
+    Grid = {}
+    PinGrid = {}
+
+    Dialogue.playing.running = false
+    Dialogue.playing.textThusFar = ""
+
     for y = 1, GridGlobalData.height do
         Grid[y] = {}
         PinGrid[y] = {}
         for x = 1, GridGlobalData.width do
-            Grid[y][x] = math.random(0,2)
+            Grid[y][x] = tonumber(zutil.weighted(DepartmentData[CurrentDepartment].squarePalette))
             PinGrid[y][x] = false
         end
     end
@@ -52,11 +60,10 @@ function UpdateFileGenerationAnimation()
 end
 
 function CalculateGridSize()
-    GridGlobalData.width = math.floor(FilesCompleted / 3) + 5
-    GridGlobalData.height = GridGlobalData.width
+    DepartmentData[CurrentDepartment].findGridWidthAndHeight()
 end
 function CalculateClearGoal()
-    return math.floor(GridGlobalData.width * GridGlobalData.height / 20)
+    return math.floor((math.floor(FilesCompleted / 3) + 5)^2 / 20)
 end
 
 function DrawGrid()
@@ -64,13 +71,19 @@ function DrawGrid()
 
     local anchorX, anchorY = GetGridAnchorCoords()
     local spacing = 10
-    love.graphics.setColor(1,1,1)
+    love.graphics.setColor(Colors[CurrentDepartment].fileBg)
     love.graphics.rectangle("fill", anchorX - spacing, anchorY - spacing, #Grid[1] * SquareGlobalData.width + spacing * 2, #Grid * SquareGlobalData.height + spacing * 2)
 
     for rowIndex, row in ipairs(Grid) do
         for squareIndex, square in ipairs(row) do
             local x, y = GetSquareCoords(squareIndex, rowIndex)
-            love.graphics.setColor(0,0,0, square/2)
+
+            if square == 3 then
+                love.graphics.setColor(Colors[CurrentDepartment].type3Square)
+            else
+                love.graphics.setColor(Colors[CurrentDepartment].squares[1],Colors[CurrentDepartment].squares[2],Colors[CurrentDepartment].squares[3], square/2)
+            end
+
             love.graphics.rectangle("fill", x, y, SquareGlobalData.width, SquareGlobalData.height)
         end
     end
@@ -90,7 +103,7 @@ function DrawGrid()
     end
 
     love.graphics.setLineWidth(5)
-    love.graphics.setColor(0,0,0)
+    love.graphics.setColor(Colors[CurrentDepartment].fileOutline)
     love.graphics.rectangle("line", anchorX - spacing, anchorY - spacing, #Grid[1] * SquareGlobalData.width + spacing * 2, #Grid * SquareGlobalData.height + spacing * 2)
 end
 
@@ -107,27 +120,9 @@ function CheckIsAnomaly(x, y)
 
     if focus == 0 then return false end
 
-    local conditionsForAnomaly = {
-        Grid[zutil.clamp(y-1,1,#Grid[1])][x] == 0 and Grid[zutil.clamp(y+1,1,#Grid[1])][x] == 2,
-        Grid[y][zutil.clamp(x-1,1,#Grid[1])] == 0 and Grid[y][zutil.clamp(x+1,1,#Grid[1])] == 2,
-        Grid[zutil.clamp(y-2,1,#Grid)][x] == 0 and Grid[zutil.clamp(y+2,1,#Grid)][x] == 0,
-        Grid[zutil.clamp(y-1,1,#Grid)][x] == focus and Grid[zutil.clamp(y+1,1,#Grid)][x] == focus,
-        Grid[zutil.clamp(y+1,1,#Grid)][zutil.clamp(x+1,1,#Grid[1])] == focus and Grid[zutil.clamp(y-1,1,#Grid)][zutil.clamp(x-1,1,#Grid[1])] == focus,
-    }
-
-    local conditionsForNotAnomaly = {
-        Grid[zutil.clamp(y-2,1,#Grid)][x] == 1 and Grid[zutil.clamp(y+2,1,#Grid)][x] == 1,
-    }
-
-    if ConditionsCollected > #conditionsForAnomaly then
-        local nToIgnore = #conditionsForNotAnomaly - (ConditionsCollected - #conditionsForAnomaly)
-
-        for index, condition in ipairs(conditionsForNotAnomaly) do
-            if index > #conditionsForNotAnomaly - nToIgnore then break end
-            if condition then
-                return false, nil
-            end
-        end
+    local conditionsForAnomaly = {}
+    for _, value in ipairs(Cards) do
+        table.insert(conditionsForAnomaly, EvaluateCondition(x, y, value.condition))
     end
 
     local nToIgnore = zutil.relu(#conditionsForAnomaly - ConditionsCollected)
@@ -135,15 +130,55 @@ function CheckIsAnomaly(x, y)
 
     for index, condition in ipairs(conditionsForAnomaly) do
         if index > #conditionsForAnomaly - nToIgnore then break end
-        if condition then
+        if condition.output and not condition.notAnomaly then
             isAnomaly = true
             conditionsMet = conditionsMet + 1
+        elseif not condition.output and condition.notAnomaly then
+            return false, conditionsMet
         end
     end
 
     return isAnomaly, conditionsMet
 end
+function EvaluateCondition(x, y, condition)
+    local conditionPartOutputs = {}
+    local focus = Grid[y][x]
+
+    for _, part in ipairs(condition.parts) do
+        local shouldBe0 = false
+
+        local targetRow = Grid[y + part.offset.y]
+        local target
+
+        if not targetRow then
+            shouldBe0 = true
+        else
+            target = Grid[y + part.offset.y][x + part.offset.x]
+            if not target then shouldBe0 = true end
+        end
+
+        if shouldBe0 then target = 0 end
+
+        local result = target == (part.type == -1 and focus or part.type)
+        if condition.isNot then result = not result end
+
+        table.insert(conditionPartOutputs, result)
+    end
+
+    local howManyAreFalse = 0
+    for _, output in ipairs(conditionPartOutputs) do
+        if not output then
+            howManyAreFalse = howManyAreFalse + 1
+            if (condition.isNot and howManyAreFalse == #conditionPartOutputs) or not condition.isNot then
+                return { output = false, notAnomaly = condition.isNot }
+            end
+        end
+    end
+    return { output = true, notAnomaly = condition.isNot }
+end
 function PlaceAnomalies()
+    if CurrentDepartment ~= "A" then return end
+
     for _ = 1, ClearGoal do
         local positionX, positionY = math.random(3, #Grid[1] - 2), math.random(3, #Grid - 2) -- no anomalies placed within 2 squares of the edges of the grid
         Grid[positionY][positionX] = math.random(1,2)
@@ -203,7 +238,7 @@ function NewTrail()
 end
 function UpdateTrails()
     for _, self in ipairs(Trails) do
-        Grid[self.y][self.x] = zutil.wrap(Grid[self.y][self.x] + zutil.randomchoice({-1,1}), 0, 2)
+        Grid[self.y][self.x] = zutil.wrap(Grid[self.y][self.x] + zutil.randomchoice({-1,1}), 0, (CurrentDepartment ~= "A" and 3 or 2))
 
         if self.direction == "up" then
             self.y = self.y - 1
