@@ -63,8 +63,10 @@ function UpdateScreen()
     end
 
     if hit == #Screen.dots then
-        PopSquare(SquareSelected.x, SquareSelected.y, Screen.conditionsMetWhenStarted)
+        if not RNEPractice.running then PopSquare(SquareSelected.x, SquareSelected.y, Screen.conditionsMetWhenStarted) end
         Screen.running = false
+        RNEPractice.running = false
+        zutil.playsfx(SFX.rneComplete, .4, 1)
     end
 end
 

@@ -102,7 +102,7 @@ function InitialiseButtons()
     end, function (self)
         self.text = (Handbook.showing and "Close" or "Handbook")
     end, function ()
-        return true
+        return not Info.showing and not Spinner.running and not Screen.running
     end)
 
     height = 30
@@ -111,7 +111,13 @@ function InitialiseButtons()
     end, function (self)
         self.text = (Info.showing and "Close" or "Info")
     end, function ()
-        return true
+        return not Handbook.showing and not Spinner.running and not Screen.running
+    end)
+
+    NewButton("Spinner Practice", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 2 - spacing * 2, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function ()
+        StartRNEPractice()
+    end, nil, function ()
+        return not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running
     end)
 
     -- height = 30

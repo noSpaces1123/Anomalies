@@ -267,7 +267,7 @@ Dialogue = {
 
 
 function UpdateDialogue()
-    if not Dialogue.playing.running then return end
+    if not Dialogue.playing.running or RNEPractice.running then return end
 
     if not Dialogue.playing.preliminaryWait.done then
         zutil.updatetimer(Dialogue.playing.preliminaryWait, function ()
@@ -323,6 +323,8 @@ function StartDialogue(type, category_OR_eventualIndex)
 end
 
 function DrawDialogue()
+    if RNEPractice.running then return end
+
     local _, y = GetGridAnchorCoords()
     if DepartmentTransition.running then y = WINDOW.CENTER_Y
     elseif Spinner.running then y = WINDOW.CENTER_Y - Spinner.radius

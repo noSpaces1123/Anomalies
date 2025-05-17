@@ -71,10 +71,16 @@ function UpdateWheel()
         end
 
         if hit < #Spinner.windows or #Spinner.badClicks > 0 then
-            Wrong()
+            if RNEPractice.running then zutil.playsfx(SFX.rnePracticeFail, .3, 1)
+            else Wrong() end
+            RNEPractice.running = false
         else
             WonSpinner = true
-            PopSquare(SquareSelected.x, SquareSelected.y, Spinner.conditionsMetWhenStarted)
+            zutil.playsfx(SFX.rneComplete, .4, 1)
+
+            if not RNEPractice.running then PopSquare(SquareSelected.x, SquareSelected.y, Spinner.conditionsMetWhenStarted) end
+
+            RNEPractice.running = false
         end
     end
 

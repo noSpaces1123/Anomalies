@@ -15,7 +15,7 @@ SquareGlobalData = {
 
 ClearGoal = 0
 
-TimeUntilCorruption = { current = 0, max = 6*60 }
+TimeUntilCorruption = { current = 0, max = 8*60 }
 
 Trails = {}
 TrailUpdateInterval = { current = 0, max = .2*60 }
@@ -34,8 +34,8 @@ function NewFile()
     Grid = {}
     PinGrid = {}
 
-    Dialogue.playing.running = false
-    Dialogue.playing.textThusFar = ""
+    -- Dialogue.playing.running = false
+    -- Dialogue.playing.textThusFar = ""
 
     for y = 1, GridGlobalData.height do
         Grid[y] = {}
@@ -69,7 +69,7 @@ function CalculateClearGoal()
 end
 
 function DrawGrid()
-    if Spinner.running or Screen.running then return end
+    if Spinner.running or Screen.running or RNEPractice.wait.running then return end
 
     local anchorX, anchorY = GetGridAnchorCoords()
     local spacing = 10

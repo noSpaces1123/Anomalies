@@ -24,6 +24,7 @@ require "handbook"
 require "wheel"
 require "screen"
 require "info"
+require "rnepractice"
 
 
 
@@ -110,6 +111,7 @@ function love.update(dt)
     UpdateMusic()
     UpdateDepartmentTransition()
     UpdateTimeUntilCorruption()
+    UpdateRNEPracticeWait()
 
     SpawnBGParticle()
 
@@ -156,6 +158,7 @@ function DrawFrame()
     end
 
     DrawDialogue()
+    DrawRNEPracticeWaitScreen()
 
     if not DepartmentTransition.running then
         DrawHandbook()

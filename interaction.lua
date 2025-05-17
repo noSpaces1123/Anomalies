@@ -167,8 +167,11 @@ function love.mousepressed(mx, my, button)
         end
 
         if not hit then
-            Wrong()
+            if RNEPractice.running then
+                zutil.playsfx(SFX.rnePracticeFail, .3, 1)
+            else Wrong() end
             Screen.running = false
+            RNEPractice.running = false
         end
     end
 
