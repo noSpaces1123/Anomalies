@@ -105,6 +105,15 @@ function InitialiseButtons()
         return true
     end)
 
+    height = 30
+    NewButton("", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height - spacing, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function ()
+        Info.showing = not Info.showing
+    end, function (self)
+        self.text = (Info.showing and "Close" or "Info")
+    end, function ()
+        return true
+    end)
+
     -- height = 30
     -- NewButton("", spacing + 20, WINDOW.HEIGHT - height - spacing * 2 - 40, width, height, "left", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function (self)
     --     self.pressed = true

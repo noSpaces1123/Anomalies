@@ -23,6 +23,7 @@ require "button"
 require "handbook"
 require "wheel"
 require "screen"
+require "info"
 
 
 
@@ -49,9 +50,9 @@ function love.load()
     Fonts = {
         cleargoal = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_SemiExpanded-Light.ttf", 30),
         rating = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 22),
-        normal = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-ExtraLight.ttf", 16),
+        normal = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Light.ttf", 16),
         handbook = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Bold.ttf", 16),
-        small = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-ExtraLight.ttf", 10),
+        small = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Regular.ttf", 10),
         big = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-ExtraLight.ttf", 50),
         dialogue = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 16),
     }
@@ -154,6 +155,7 @@ function DrawFrame()
 
     if not DepartmentTransition.running then
         DrawHandbook()
+        DrawInfo()
         DrawButtons()
     end
 

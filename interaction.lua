@@ -178,6 +178,10 @@ end
 function love.wheelmoved(_, y)
     if Handbook.showing then
         Handbook.scrollYOffset = zutil.clamp(Handbook.scrollYOffset + y * 7, -Handbook.pageSprites[1]:getHeight() + WINDOW.HEIGHT - Handbook.yOffset * 2, 0)
+    elseif Info.showing then
+        local nLines = Fonts.normal:getWrap(Info.text, Info.width)
+        local minimum = zutil.relu(-Fonts.normal:getHeight()*nLines + WINDOW.HEIGHT - Handbook.yOffset * 2)
+        Handbook.scrollYOffset = zutil.clamp(Info.scrollYOffset + y * 7, minimum, 0)
     else
         SquareGlobalData.width = zutil.clamp(SquareGlobalData.width + y, 5, 30)
 
