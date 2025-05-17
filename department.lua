@@ -117,3 +117,23 @@ function UpdateDepartmentTransition()
         DepartmentTransition.running = false
     end
 end
+
+function DrawBG()
+    if CurrentDepartment == "B" then
+        local width = 30
+        local maxDistance = 400
+        local colorType = (Screen.running and "screenOutline" or "fileOutline")
+
+        for y = 0, WINDOW.HEIGHT, width do
+            for x = 0, WINDOW.WIDTH, width do
+                local mx, my = love.mouse.getPosition()
+                if Spinner.running then mx, my = WINDOW.CENTER_X, WINDOW.CENTER_Y end
+                local distance = zutil.distance(mx, my, x + width/2, y + width/2)
+                local ratio = zutil.relu(1 - distance/maxDistance)
+
+                love.graphics.setColor(Colors[CurrentDepartment][colorType][1],Colors[CurrentDepartment][colorType][2],Colors[CurrentDepartment][colorType][3], ratio * .2 - math.random() / 100)
+                love.graphics.rectangle("fill", x, y, width, width)
+            end
+        end
+    end
+end

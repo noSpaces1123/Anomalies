@@ -39,6 +39,8 @@ function PopSquare(x, y, conditionsMet)
     zutil.playsfx(SFX.pop, .4, 1)
     zutil.playsfx(SFX.collect, .4, zutil.relu((CalculateClearGoal()-ClearGoal)/CalculateClearGoal())+1)
 
+    TimeUntilCorruption.current = 0
+
     ClearGoal = ClearGoal - 1
 
     if ClearGoal <= 0 then
@@ -201,6 +203,8 @@ function Wrong()
     GridGlobalData.generationAnimation.running = true
     GridGlobalData.generationAnimation.max = 0.22*60
     GridGlobalData.generationAnimation.becauseWrong = true
+
+    TimeUntilCorruption.current = 0
 
     ShakeIntensity = 8
 end

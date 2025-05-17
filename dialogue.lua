@@ -253,6 +253,14 @@ Dialogue = {
                 return cond
             end
         },
+        {
+            text = "Here's your last card.", person = "noir",
+            when = function ()
+                local cond = CurrentDepartment == "B" and FilesCompleted == 20
+                if cond then ConditionsCollected = 7 end
+                return cond
+            end
+        },
     },
 }
 

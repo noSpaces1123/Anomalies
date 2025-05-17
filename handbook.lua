@@ -8,7 +8,9 @@ Handbook = {
 
 local directory = "assets/sprites/handbook"
 for _, fileName in ipairs(love.filesystem.getDirectoryItems(directory)) do
-    table.insert(Handbook.pageSprites, love.graphics.newImage(directory.."/"..fileName, {dpiscale=3}))
+    if fileName ~= ".DS_Store" then
+        table.insert(Handbook.pageSprites, love.graphics.newImage(directory.."/"..fileName, {dpiscale=3}))
+    end
 end
 
 
@@ -22,18 +24,20 @@ function DrawHandbook()
     love.graphics.setColor(1,1,1)
     love.graphics.draw(sprite, WINDOW.CENTER_X - sprite:getWidth() / 2, Handbook.yOffset + Handbook.scrollYOffset)
 
-    love.graphics.setFont(Fonts.handbook)
-    love.graphics.printf("Use the arrow keys to switch pages.", 0, Handbook.yOffset + Handbook.scrollYOffset + sprite:getHeight() + 20, WINDOW.WIDTH, "center")
+    if UseSpinners or UseScreens then
+        love.graphics.setFont(Fonts.handbook)
+        love.graphics.printf("Use the arrow keys to switch pages.", 0, Handbook.yOffset + Handbook.scrollYOffset + sprite:getHeight() + 20, WINDOW.WIDTH, "center")
+    end
 end
 
 function love.keypressed(key)
     if Handbook.showing then
+        local pageBefore = Handbook.page
+
         if key == "left" then
             Handbook.page = Handbook.page - 1
-            Handbook.scrollYOffset = 0
         elseif key == "right" then
             Handbook.page = Handbook.page + 1
-            Handbook.scrollYOffset = 0
         end
 
         local pagesAllowed = 1
@@ -41,5 +45,9 @@ function love.keypressed(key)
         if UseScreens then pagesAllowed = pagesAllowed + 1 end
 
         Handbook.page = zutil.clamp(Handbook.page, 1, pagesAllowed)
+
+        if pageBefore ~= Handbook.page then
+            Handbook.scrollYOffset = 0
+        end
     end
 end

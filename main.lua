@@ -109,6 +109,7 @@ function love.update(dt)
     UpdateShake()
     UpdateMusic()
     UpdateDepartmentTransition()
+    UpdateTimeUntilCorruption()
 
     SpawnBGParticle()
 
@@ -135,6 +136,9 @@ function love.draw()
 end
 function DrawFrame()
     love.graphics.origin()
+
+    DrawBG()
+
     love.graphics.translate(zutil.jitter(ShakeIntensity), zutil.jitter(ShakeIntensity))
 
     if not DepartmentTransition.running then

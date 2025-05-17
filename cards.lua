@@ -77,6 +77,13 @@ AllConditions = {
             },
             isNot = true,
         },
+        {
+            parts = {
+                { offset = { y = -1, x = 0 }, type = 0 },
+                { offset = { y = 1, x = 0 }, type = 0 }
+            },
+            isNot = true,
+        },
     },
 }
 
@@ -134,6 +141,6 @@ end
 function DrawNewCardIndicator()
     if not NewCardIndicator.on then return end
 
-    love.graphics.setColor(1,1,1)
+    love.graphics.setColor(Colors[CurrentDepartment].fileOutline)
     love.graphics.draw(NewCardIndicator.sprite, WINDOW.CENTER_X - NewCardIndicator.sprite:getWidth()/2, WINDOW.HEIGHT - 50 - math.abs(math.sin(math.rad(NewCardIndicator.bounce.current))) * 10)
 end

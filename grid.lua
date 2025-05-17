@@ -15,6 +15,8 @@ SquareGlobalData = {
 
 ClearGoal = 0
 
+TimeUntilCorruption = { current = 0, max = 6*60 }
+
 Trails = {}
 TrailUpdateInterval = { current = 0, max = .2*60 }
 TrailSpawnInterval = { current = 0, max = 30*60 }
@@ -105,6 +107,16 @@ function DrawGrid()
     love.graphics.setLineWidth(5)
     love.graphics.setColor(Colors[CurrentDepartment].fileOutline)
     love.graphics.rectangle("line", anchorX - spacing, anchorY - spacing, #Grid[1] * SquareGlobalData.width + spacing * 2, #Grid * SquareGlobalData.height + spacing * 2)
+
+    if CurrentDepartment ~= "A" then
+        local ratio = TimeUntilCorruption.current / TimeUntilCorruption.max
+        local easing = zutil.easing.easeInExpo
+        local width = (#Grid[1] * SquareGlobalData.width + spacing * 2) * easing(ratio)
+        local height = 20
+
+        love.graphics.setColor(Colors[CurrentDepartment].fileOutline[1],Colors[CurrentDepartment].fileOutline[2],Colors[CurrentDepartment].fileOutline[3], easing(ratio))
+        love.graphics.rectangle("fill", anchorX - spacing, anchorY - spacing  +  #Grid * SquareGlobalData.height + spacing * 3, width, height)
+    end
 end
 
 function GetGridAnchorCoords()
@@ -260,4 +272,13 @@ function UpdateTrailUpdateInterval()
 end
 function UpdateTrailSpawnInterval()
     zutil.updatetimer(TrailSpawnInterval, NewTrail, 1, GlobalDT)
+end
+
+
+
+function UpdateTimeUntilCorruption()
+    if CurrentDepartment == "A" or Spinner.running or Screen.running or GridGlobalData.generationAnimation.running or DepartmentTransition.running then return end
+    zutil.updatetimer(TimeUntilCorruption, function ()
+        Wrong()
+    end, 1, GlobalDT)
 end
