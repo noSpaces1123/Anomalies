@@ -10,7 +10,9 @@ function AdjustRating(event, anomalyConditionsReached)
     elseif event == "anomaly found" then
         Rating = Rating + anomalyConditionsReached * 5
     elseif event == "hit arc" then
-        Rating = Rating + 1
+        Rating = Rating + 3
+    elseif event == "did rne queue" then
+        Rating = Rating + 15
     end
 end
 

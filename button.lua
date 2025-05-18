@@ -96,6 +96,8 @@ end
 
 
 function InitialiseButtons()
+    Buttons = {}
+
     local spacing, width, height = 10, 130, 40
     NewButton("", spacing + 20, WINDOW.HEIGHT - height - spacing, width, height, "left", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.normal, 1, 5, 5, function ()
         Handbook.showing = not Handbook.showing
@@ -117,7 +119,15 @@ function InitialiseButtons()
     NewButton("Spinner Practice", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 2 - spacing * 2, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function ()
         StartRNEPractice()
     end, nil, function ()
-        return not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running
+        return UseSpinners and WonSpinner and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running
+    end)
+    NewButton("", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 3 - spacing * 3, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function (self)
+        StartRNEFromQueue()
+    end, function (self)
+        self.text = "RNE Queue ("..#RNEQueueList..")"
+    end, function ()
+        local cond = CurrentDepartment == "B" and UseSpinners and WonSpinner and UseScreens and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running
+        return cond
     end)
 
     -- height = 30

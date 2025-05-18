@@ -63,10 +63,16 @@ function UpdateScreen()
     end
 
     if hit == #Screen.dots then
-        if not RNEPractice.running then PopSquare(SquareSelected.x, SquareSelected.y, Screen.conditionsMetWhenStarted) end
+        if RNEPractice.running then
+            if RNEQueue.doing then AdjustRating("did rne queue") end
+        else
+            PopSquare(SquareSelected.x, SquareSelected.y, Screen.conditionsMetWhenStarted)
+        end
         Screen.running = false
         RNEPractice.running = false
+        RNEQueue.doing = false
         zutil.playsfx(SFX.rneComplete, .4, 1)
+        PerhapsPlayVoicedAffirmationSFX()
     end
 end
 

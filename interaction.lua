@@ -124,7 +124,7 @@ function love.mousepressed(mx, my, button)
                 self.hit = true
                 zutil.playsfx(SFX.wheelHit, .3, 1 + nHit)
                 hitSomething = true
-                AdjustRating("hit arc")
+                if not RNEPractice.running then AdjustRating("hit arc") end
             end
         end
 
@@ -169,9 +169,11 @@ function love.mousepressed(mx, my, button)
         if not hit then
             if RNEPractice.running then
                 zutil.playsfx(SFX.rnePracticeFail, .3, 1)
+                if RNEQueue.doing then NewRNEQueueItem() end
             else Wrong() end
             Screen.running = false
             RNEPractice.running = false
+            RNEQueue.doing = false
         end
     end
 

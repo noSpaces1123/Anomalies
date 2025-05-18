@@ -4,7 +4,7 @@ Info = {
     width = 827,
     text =
 [[
-v0.1.0-alpha
+v0.2.0-alpha
 
 
 

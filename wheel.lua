@@ -28,6 +28,7 @@ function StartWheel(conditionsMet)
     Spinner.badClicks = {}
     Spinner.radiusPop.running = true
     Spinner.radiusPop.current = 1
+    Spinner.shake = 0
     Spinner.running = true
 
     zutil.playsfx(SFX.wheelStart, .4, 1)
@@ -71,16 +72,25 @@ function UpdateWheel()
         end
 
         if hit < #Spinner.windows or #Spinner.badClicks > 0 then
-            if RNEPractice.running then zutil.playsfx(SFX.rnePracticeFail, .3, 1)
+            if RNEPractice.running then
+                zutil.playsfx(SFX.rnePracticeFail, .3, 1)
+                if RNEQueue.doing then NewRNEQueueItem() end
             else Wrong() end
             RNEPractice.running = false
+            RNEQueue.doing = false
         else
             WonSpinner = true
             zutil.playsfx(SFX.rneComplete, .4, 1)
+            PerhapsPlayVoicedAffirmationSFX()
 
-            if not RNEPractice.running then PopSquare(SquareSelected.x, SquareSelected.y, Spinner.conditionsMetWhenStarted) end
+            if RNEPractice.running then
+                if RNEQueue.doing then AdjustRating("did rne queue") end
+            else
+                PopSquare(SquareSelected.x, SquareSelected.y, Spinner.conditionsMetWhenStarted)
+            end
 
             RNEPractice.running = false
+            RNEQueue.doing = false
         end
     end
 

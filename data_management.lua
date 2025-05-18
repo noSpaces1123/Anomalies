@@ -18,6 +18,8 @@ function SaveData()
         WonScreen = WonScreen, WonSpinner = WonSpinner,
         PlayedWheel = WonSpinner,
         CurrentDepartment = CurrentDepartment,
+        RNEQueueAddInterval = RNEQueueAddInterval, RNEQueueList = RNEQueueList,
+        TimeUntilCorruption = TimeUntilCorruption,
     }
 
     local encoded = love.data.encode("string", "base64", lume.serialize(data))

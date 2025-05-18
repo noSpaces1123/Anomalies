@@ -24,7 +24,7 @@ require "handbook"
 require "wheel"
 require "screen"
 require "info"
-require "rnepractice"
+require "rne"
 
 
 
@@ -64,8 +64,6 @@ function love.load()
 
     Particles = {}
     BGParticles = {}
-
-    Buttons = {}
 
     NewFile()
     ClearGoal = CalculateClearGoal()
@@ -112,6 +110,7 @@ function love.update(dt)
     UpdateDepartmentTransition()
     UpdateTimeUntilCorruption()
     UpdateRNEPracticeWait()
+    UpdateRNEQueue()
 
     SpawnBGParticle()
 
@@ -159,6 +158,7 @@ function DrawFrame()
 
     DrawDialogue()
     DrawRNEPracticeWaitScreen()
+    DrawRNEQueueSourcePerson()
 
     if not DepartmentTransition.running then
         DrawHandbook()
