@@ -217,11 +217,13 @@ function love.keypressed(key)
             Handbook.scrollYOffset = 0
         end
     elseif Road.running then
-        if key == "left" and Road.playerColumn > 1 then
+        if (key == "left" or key == "a") and Road.playerColumn > 1 then
             Road.playerColumn = Road.playerColumn - 1
-        elseif key == "right" and Road.playerColumn < Road.columns then
+        elseif (key == "right" or key == "d") and Road.playerColumn < Road.columns then
             Road.playerColumn = Road.playerColumn + 1
         end
+    elseif Spinner.running then
+        love.mousepressed(0, 0, 1)
     end
 end
 
