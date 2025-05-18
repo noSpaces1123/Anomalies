@@ -23,6 +23,7 @@ require "button"
 require "handbook"
 require "wheel"
 require "screen"
+require "road"
 require "info"
 require "rne"
 
@@ -105,6 +106,8 @@ function love.update(dt)
     UpdateNewCardIndicator()
     UpdateWheel()
     UpdateScreen()
+    UpdateRoad()
+    UpdateRoadObstacleSpawnInterval()
     UpdateShake()
     UpdateMusic()
     UpdateDepartmentTransition()
@@ -150,6 +153,7 @@ function DrawFrame()
         DrawGrid()
         DrawWheel()
         DrawScreen()
+        DrawRoad()
         DrawDisplays()
         DrawParticles()
         DrawCards()

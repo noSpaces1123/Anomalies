@@ -59,7 +59,7 @@ function UpdateRNEQueue()
     end, 1, GlobalDT)
 end
 function NewRNEQueueItem()
-    table.insert(RNEQueueList, zutil.randomchoice({"Wheel","Screen"}))
+    table.insert(RNEQueueList, zutil.randomchoice({"Wheel","Screen","Road"}))
 end
 function StartRNEFromQueue()
     if #RNEQueueList <= 0 then return end

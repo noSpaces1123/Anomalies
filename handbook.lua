@@ -29,25 +29,3 @@ function DrawHandbook()
         love.graphics.printf("Use the arrow keys to switch pages.", 0, Handbook.yOffset + Handbook.scrollYOffset + sprite:getHeight() + 20, WINDOW.WIDTH, "center")
     end
 end
-
-function love.keypressed(key)
-    if Handbook.showing then
-        local pageBefore = Handbook.page
-
-        if key == "left" then
-            Handbook.page = Handbook.page - 1
-        elseif key == "right" then
-            Handbook.page = Handbook.page + 1
-        end
-
-        local pagesAllowed = 1
-        if UseSpinners then pagesAllowed = pagesAllowed + 1 end
-        if UseScreens then pagesAllowed = pagesAllowed + 1 end
-
-        Handbook.page = zutil.clamp(Handbook.page, 1, pagesAllowed)
-
-        if pageBefore ~= Handbook.page then
-            Handbook.scrollYOffset = 0
-        end
-    end
-end

@@ -9,7 +9,7 @@ Dialogue = {
     },
     peopleColors = {
         ["foster"] = Colors[CurrentDepartment].text,
-        ["michael"] = {0,1,.5},
+        ["michael"] = {0,.4,.8},
         ["noir"] = {221/255, 45/255, 74/255},
     },
     list = {
@@ -242,6 +242,14 @@ Dialogue = {
             when = function ()
                 local cond = CurrentDepartment == "B" and FilesCompleted == 9
                 if cond then ConditionsCollected = 5 end
+                return cond
+            end
+        },
+        {
+            text = "You have a new RNE to worry about. Read about roads in the handbook.", person = "noir",
+            when = function ()
+                local cond = CurrentDepartment == "B" and FilesCompleted == 10
+                if cond then UseRoads = true end
                 return cond
             end
         },

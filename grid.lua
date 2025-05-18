@@ -69,7 +69,7 @@ function CalculateClearGoal()
 end
 
 function DrawGrid()
-    if Spinner.running or Screen.running or RNEPractice.wait.running then return end
+    if Spinner.running or Screen.running or Road.running or RNEPractice.wait.running then return end
 
     local anchorX, anchorY = GetGridAnchorCoords()
     local spacing = 10
@@ -277,7 +277,7 @@ end
 
 
 function UpdateTimeUntilCorruption()
-    if CurrentDepartment == "A" or Spinner.running or Screen.running or GridGlobalData.generationAnimation.running or DepartmentTransition.running or RNEPractice.wait.running then return end
+    if CurrentDepartment == "A" or Spinner.running or Screen.running or Road.running or GridGlobalData.generationAnimation.running or DepartmentTransition.running or RNEPractice.wait.running then return end
     zutil.updatetimer(TimeUntilCorruption, function ()
         Wrong()
     end, 1, GlobalDT)

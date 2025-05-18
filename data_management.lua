@@ -1,9 +1,4 @@
 function SaveData()
-    -- local eventualDialoguesTriggered = {}
-    -- for _, data in ipairs(Dialogue.eventual) do
-    --     table.insert(eventualDialoguesTriggered, data.triggered == true)
-    -- end
-
     local data = {
         Grid = Grid,
         FilesCompleted = FilesCompleted,
@@ -16,6 +11,7 @@ function SaveData()
         ConditionsCollected = ConditionsCollected,
         UseSpinners = UseSpinners, UseScreens = UseScreens,
         WonScreen = WonScreen, WonSpinner = WonSpinner,
+        UseRoads = UseRoads,
         PlayedWheel = WonSpinner,
         CurrentDepartment = CurrentDepartment,
         RNEQueueAddInterval = RNEQueueAddInterval, RNEQueueList = RNEQueueList,

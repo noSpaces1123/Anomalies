@@ -1,7 +1,7 @@
 SquareSelected = { x = nil, y = nil } -- the square the mouse is hovering over
 
 function UpdateSelectedSquare()
-    if Spinner.running or Screen.running then return end
+    if Spinner.running or Screen.running or Road.running then return end
 
     local mx, my = love.mouse.getPosition()
 
@@ -59,7 +59,7 @@ function love.mousepressed(mx, my, button)
     if DepartmentTransition.running then return end
     if GridGlobalData.generationAnimation.running then goto generationAnimationIsRunning end
 
-    if not Handbook.showing and not Spinner.running and not Screen.running then
+    if not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not RNEPractice.wait.running then
         if button == 1 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
             UpdateSelectedSquare()
 
@@ -69,6 +69,7 @@ function love.mousepressed(mx, my, button)
                 local choices = {}
                 if UseSpinners then table.insert(choices, "Wheel") end
                 if UseScreens then table.insert(choices, "Screen") end
+                if UseRoads then table.insert(choices, "Road") end
 
                 if zutil.weightedbool(100/6) and #choices > 0 then
                     _G["Start" .. zutil.randomchoice(choices)](conditionsMet)
@@ -193,6 +194,34 @@ function love.wheelmoved(_, y)
         SquareGlobalData.width = zutil.clamp(SquareGlobalData.width + y, 5, 30)
 
         SquareGlobalData.height = SquareGlobalData.width
+    end
+end
+
+function love.keypressed(key)
+    if Handbook.showing then
+        local pageBefore = Handbook.page
+
+        if key == "left" then
+            Handbook.page = Handbook.page - 1
+        elseif key == "right" then
+            Handbook.page = Handbook.page + 1
+        end
+
+        local pagesAllowed = 1
+        if UseSpinners then pagesAllowed = pagesAllowed + 1 end
+        if UseScreens then pagesAllowed = pagesAllowed + 1 end
+
+        Handbook.page = zutil.clamp(Handbook.page, 1, pagesAllowed)
+
+        if pageBefore ~= Handbook.page then
+            Handbook.scrollYOffset = 0
+        end
+    elseif Road.running then
+        if key == "left" and Road.playerColumn > 1 then
+            Road.playerColumn = Road.playerColumn - 1
+        elseif key == "right" and Road.playerColumn < Road.columns then
+            Road.playerColumn = Road.playerColumn + 1
+        end
     end
 end
 
