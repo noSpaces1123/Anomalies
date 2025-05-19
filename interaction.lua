@@ -45,7 +45,7 @@ function PopSquare(x, y, conditionsMet)
 
     if ClearGoal <= 0 then
         if FilesCompleted < 35 then CompleteFile()
-        else
+        elseif CurrentDepartment == "A" then
             StartDepartmentTransition()
         end
     else
@@ -57,6 +57,7 @@ end
 
 function love.mousepressed(mx, my, button)
     if DepartmentTransition.running then return end
+    if EndOfContent.showing then return end
     if GridGlobalData.generationAnimation.running then goto generationAnimationIsRunning end
 
     if not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not RNEPractice.wait.running then
@@ -217,10 +218,15 @@ function love.keypressed(key)
             Handbook.scrollYOffset = 0
         end
     elseif Road.running then
-        if (key == "left" or key == "a") and Road.playerColumn > 1 then
+        local moved = false
+        if (key == "left" or key == "a") and Road.playerColumn > 1 then moved = true
             Road.playerColumn = Road.playerColumn - 1
-        elseif (key == "right" or key == "d") and Road.playerColumn < Road.columns then
+        elseif (key == "right" or key == "d") and Road.playerColumn < Road.columns then moved = true
             Road.playerColumn = Road.playerColumn + 1
+        end
+
+        if moved then
+            zutil.playsfx(SFX.roadMove, .3, 1)
         end
     elseif Spinner.running then
         love.mousepressed(0, 0, 1)
@@ -253,6 +259,10 @@ function CompleteFile()
         sfx = SFX["fileComplete" .. math.random(2,3)]
     end
     zutil.playsfx(sfx, .6, 1)
+
+    if not Dialogue.playing then
+        Dialogue.textThusFar = ""
+    end
 
     StartDialogue("list", "completeFile")
 

@@ -104,7 +104,7 @@ function InitialiseButtons()
     end, function (self)
         self.text = (Handbook.showing and "Close" or "Handbook")
     end, function ()
-        return not Info.showing and not Spinner.running and not Screen.running and not Road.running
+        return not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
     end)
 
     height = 30
@@ -113,20 +113,25 @@ function InitialiseButtons()
     end, function (self)
         self.text = (Info.showing and "Close" or "Info")
     end, function ()
-        return not Handbook.showing and not Spinner.running and not Screen.running and not Road.running
+        return not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
     end)
 
     NewButton("Spinner Practice", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 2 - spacing * 2, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function ()
         StartRNEPractice()
     end, nil, function ()
-        return UseSpinners and WonSpinner and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running
+        return UseSpinners and WonSpinner and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
     end)
-    NewButton("", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 3 - spacing * 3, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function (self)
+
+    local bx, by = WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 3 - spacing * 3
+    NewButton("", bx, by, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function (self)
         StartRNEFromQueue()
     end, function (self)
         self.text = "RNE Queue ("..#RNEQueueList..")"
+
+        local amp = zutil.relu(#RNEQueueList - 2)
+        self.x, self.y = bx + zutil.jitter(amp), by + zutil.jitter(amp)
     end, function ()
-        return CurrentDepartment == "B" and UseSpinners and WonSpinner and UseScreens and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running
+        return CurrentDepartment == "B" and UseSpinners and WonSpinner and UseScreens and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
     end)
 
     -- height = 30

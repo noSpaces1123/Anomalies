@@ -331,12 +331,13 @@ function StartDialogue(type, category_OR_eventualIndex)
 end
 
 function DrawDialogue()
-    if RNEPractice.running then return end
+    if RNEPractice.wait.running then return end
 
     local _, y = GetGridAnchorCoords()
     if DepartmentTransition.running then y = WINDOW.CENTER_Y
     elseif Spinner.running then y = WINDOW.CENTER_Y - Spinner.radius
-    elseif Screen.running then y = Screen.y end
+    elseif Screen.running then y = Screen.y
+    elseif Road.running then y = Road.y end
     y = y - Fonts.dialogue:getHeight() - 20
 
     local limit = 1000

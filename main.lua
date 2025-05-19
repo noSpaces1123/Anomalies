@@ -88,6 +88,13 @@ function love.load()
 
     ShakeIntensity = 0
 
+    EndOfContent = {
+        reached = function ()
+            return false
+        end,
+        showing = false,
+    }
+
     GlobalDT = 0
 end
 
@@ -114,6 +121,7 @@ function love.update(dt)
     UpdateTimeUntilCorruption()
     UpdateRNEPracticeWait()
     UpdateRNEQueue()
+    CheckForEndOfContent()
 
     SpawnBGParticle()
 
@@ -169,6 +177,8 @@ function DrawFrame()
         DrawInfo()
         DrawButtons()
     end
+
+    DrawEndOfContentScreen()
 
     DrawCursor()
 end
@@ -272,4 +282,17 @@ function DrawCursor()
     if CursorState == "invisible" then return end
     love.graphics.setColor(1,1,1)
     love.graphics.draw(sprite, love.mouse.getX() - sprite:getWidth() / 2, love.mouse.getY() - sprite:getHeight() / 2)
+end
+
+function CheckForEndOfContent()
+    if EndOfContent.reached() and not EndOfContent.showing then
+        EndOfContent.showing = true
+    end
+end
+function DrawEndOfContentScreen()
+    if not EndOfContent.showing then return end
+
+    love.graphics.overlay(0,0,0)
+    love.graphics.setFont(Fonts.normal)
+    love.graphics.printf("You've reached the end of Anomalies- for now.\n\nNew updates will be out soon. Stay tuned~", 0, WINDOW.CENTER_Y - Fonts.normal:getHeight()/2, WINDOW.WIDTH, "center")
 end

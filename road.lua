@@ -18,10 +18,11 @@ UseRoads = false
 function StartRoad(conditionsMetWhenStarted)
     Road.obstacles = {}
     Road.playerColumn = 2
-    Road.running = true
     Road.obstacles = {}
     Road.obstacleInterval.current = 0
     Road.obstaclesLeftToSpawn = math.random(10, 17)
+    Road.speed = 10
+    Road.running = true
 
     Road.conditionsMetWhenStarted = conditionsMetWhenStarted
 end
@@ -43,12 +44,20 @@ function UpdateRoad()
     for _, self in ipairs(Road.obstacles) do
         local limit = 10
         for _ = 1, limit do
+            local startX = Road.x + Road.width/Road.columns*(self.column - 1)
+
             self.y = self.y - Road.speed * GlobalDT / limit + self.tend * GlobalDT / limit
             if self.y <= 0 then
+                zutil.playsfx(SFX.roadObstacleDisappear, .4, math.random()/2+.75)
+
+                for _ = 1, 10 do
+                    table.insert(Particles, NewParticle(startX + Road.width/Road.columns/2, self.y + Road.y, math.random()*2+1, Colors[CurrentDepartment].roadBg, math.random()*4+3, 180+zutil.jitter(45), .03, math.random(300,600)))
+                end
+
                 zutil.remove(Road.obstacles, self)
+                goto continue
             end
 
-            local startX = Road.x + Road.width/Road.columns*(self.column - 1)
             if zutil.touching(startX, self.y + Road.y, Road.width/Road.columns, 0,   Road.x + Road.width/Road.columns*(Road.playerColumn-1+.5) - Road.playerRadius, Road.y + Road.playerY - Road.playerRadius, Road.playerRadius*2, Road.playerRadius*2) then
                 if RNEPractice.running then
                     zutil.playsfx(SFX.rnePracticeFail, .3, 1)
@@ -61,6 +70,7 @@ function UpdateRoad()
                 return
             end
         end
+        ::continue::
     end
 
     if #Road.obstacles <= 0 and Road.obstaclesLeftToSpawn <= 0 then
