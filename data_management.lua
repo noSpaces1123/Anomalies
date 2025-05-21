@@ -16,6 +16,7 @@ function SaveData()
         CurrentDepartment = CurrentDepartment,
         RNEQueueAddInterval = RNEQueueAddInterval, RNEQueueList = RNEQueueList,
         TimeUntilCorruption = TimeUntilCorruption,
+        StartedShift = StartedShift,
     }
 
     local encoded = love.data.encode("string", "base64", lume.serialize(data))

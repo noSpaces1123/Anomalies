@@ -104,22 +104,21 @@ function InitialiseButtons()
     end, function (self)
         self.text = (Handbook.showing and "Close" or "Handbook")
     end, function ()
-        return not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
+        return GameState == "game" and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
     end)
 
     height = 30
-    NewButton("", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height - spacing, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function ()
-        Info.showing = not Info.showing
-    end, function (self)
-        self.text = (Info.showing and "Close" or "Info")
-    end, function ()
-        return not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
+    NewButton("Menu", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height - spacing, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function ()
+        GameState = "menu"
+        SaveData()
+    end, nil, function ()
+        return GameState == "game" and not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
     end)
 
     NewButton("Spinner Practice", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 2 - spacing * 2, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function ()
         StartRNEPractice()
     end, nil, function ()
-        return UseSpinners and WonSpinner and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
+        return GameState == "game" and UseSpinners and WonSpinner and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
     end)
 
     local bx, by = WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 3 - spacing * 3
@@ -131,15 +130,25 @@ function InitialiseButtons()
         local amp = zutil.relu(#RNEQueueList - 2)
         self.x, self.y = bx + zutil.jitter(amp), by + zutil.jitter(amp)
     end, function ()
-        return CurrentDepartment == "B" and UseSpinners and WonSpinner and UseScreens and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
+        return GameState == "game" and CurrentDepartment == "B" and UseSpinners and WonSpinner and UseScreens and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
     end)
 
-    -- height = 30
-    -- NewButton("", spacing + 20, WINDOW.HEIGHT - height - spacing * 2 - 40, width, height, "left", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function (self)
-    --     self.pressed = true
-    -- end, function (self)
-    --     self.text = (self.pressed and "Not available" or "File complaint")
-    -- end, function ()
-    --     return true
-    -- end)
+
+
+    local yAnchor = WINDOW.CENTER_Y + 100
+    width = 300   height = 40
+    NewButton("", WINDOW.CENTER_X - width/2, yAnchor, width, height, "center", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.normal, 1, 5, 5, function ()
+        GameState = "game"
+        StartedShift = true
+        SaveData()
+    end, function (self)
+        self.text = (StartedShift and "Continue" or "Start") .. " Shift"
+    end, function ()
+        return GameState == "menu"
+    end)
+    NewButton("Quit", WINDOW.CENTER_X - width/2, yAnchor + (height + spacing) * 1, width, height, "center", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.normal, 1, 5, 5, function ()
+        love.event.quit()
+    end, nil, function ()
+        return GameState == "menu"
+    end)
 end

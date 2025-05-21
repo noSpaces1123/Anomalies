@@ -58,7 +58,7 @@ end
 function love.mousepressed(mx, my, button)
     if DepartmentTransition.running then return end
     if EndOfContent.showing then return end
-    if GridGlobalData.generationAnimation.running then goto generationAnimationIsRunning end
+    if GridGlobalData.generationAnimation.running or GameState == "menu" then goto skipInteraction end
 
     if not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not RNEPractice.wait.running then
         if button == 1 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
@@ -179,7 +179,7 @@ function love.mousepressed(mx, my, button)
         end
     end
 
-    ::generationAnimationIsRunning::
+    ::skipInteraction::
 
     CheckButtonsClicked(button)
 end
@@ -187,11 +187,7 @@ end
 function love.wheelmoved(_, y)
     if Handbook.showing then
         Handbook.scrollYOffset = zutil.clamp(Handbook.scrollYOffset + y * 7, -Handbook.pageSprites[1]:getHeight() + WINDOW.HEIGHT - Handbook.yOffset * 2, 0)
-    elseif Info.showing then
-        local nLines = Fonts.normal:getWrap(Info.text, Info.width)
-        local minimum = zutil.relu(-Fonts.normal:getHeight()*nLines + WINDOW.HEIGHT - Handbook.yOffset * 2)
-        Handbook.scrollYOffset = zutil.clamp(Info.scrollYOffset + y * 7, minimum, 0)
-    else
+    elseif not GridGlobalData.introAnimation.running then
         SquareGlobalData.width = zutil.clamp(SquareGlobalData.width + y, 5, 30)
 
         SquareGlobalData.height = SquareGlobalData.width
@@ -263,6 +259,8 @@ function CompleteFile()
     if not Dialogue.playing then
         Dialogue.textThusFar = ""
     end
+
+    Animations.greeting.running = false
 
     StartDialogue("list", "completeFile")
 

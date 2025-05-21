@@ -13,15 +13,18 @@ Dialogue = {
         ["noir"] = {221/255, 45/255, 74/255},
     },
     list = {
+        firstEverGreeting = {
+            "Welcome to Moriel Incorporated.",
+        },
         greeting = {
             "Welcome back.",
             "Hello again.",
-            "Didn't think I'd see you again.",
-            "Let's get to work.",
-            "It feels as if we saw each other just a second ago.",
-            "Let's get to it.",
+            "Hello. I wasn't sure if I'd see you again.",
+            "Hello. Let's get to work.",
+            "Hello. It feels as if we saw each other just a second ago.",
+            "Hello. Let's get to it.",
             "I hope your day's going well.",
-            "Feeling good?",
+            "Hello. Feeling good?",
             "Nice to see you again.",
         },
         completeFile = {
@@ -29,7 +32,7 @@ Dialogue = {
             "That's the spirit.",
             "Great job.",
             "The boss will be happy.",
-            "Don't get distracted.",
+            "This is better than coffee.",
             "Excellent work.",
             "Nice job.",
             "Good job.",
@@ -37,6 +40,7 @@ Dialogue = {
             "Admirable work.",
             "You impress.",
             "It gets better every time.",
+            "Go get 'em, tiger.",
         },
         wrong = {
             "Owch. Try again.",
@@ -322,6 +326,10 @@ function StartDialogue(type, category_OR_eventualIndex)
     if type == "list" then
         Dialogue.playing.targetText = zutil.randomchoice(Dialogue.list[category_OR_eventualIndex])
         Dialogue.playing.person = "foster"
+
+        if category_OR_eventualIndex == "greeting" or category_OR_eventualIndex == "firstEverGreeting" then
+            Animations.greeting.running = true
+        end
     elseif type == "eventual" then
         Dialogue.playing.targetText = Dialogue.eventual[category_OR_eventualIndex].text
         Dialogue.playing.person = (Dialogue.eventual[category_OR_eventualIndex].person and Dialogue.eventual[category_OR_eventualIndex].person or "foster")
@@ -333,12 +341,7 @@ end
 function DrawDialogue()
     if RNEPractice.wait.running then return end
 
-    local _, y = GetGridAnchorCoords()
-    if DepartmentTransition.running then y = WINDOW.CENTER_Y
-    elseif Spinner.running then y = WINDOW.CENTER_Y - Spinner.radius
-    elseif Screen.running then y = Screen.y
-    elseif Road.running then y = Road.y end
-    y = y - Fonts.dialogue:getHeight() - 20
+    local y = GetDialogueY()
 
     local limit = 1000
     local spacing = (WINDOW.WIDTH - limit) / 2
@@ -346,6 +349,18 @@ function DrawDialogue()
     love.graphics.setColor(Dialogue.playing.color)
     love.graphics.setFont(Fonts.dialogue)
     love.graphics.printf(Dialogue.playing.textThusFar, spacing, y - (#wrappedText - 1) * Fonts.dialogue:getHeight(), limit, "center")
+
+    DrawGreetingAnimation()
+end
+function GetDialogueY()
+    local _, y = GetGridAnchorCoords()
+    if DepartmentTransition.running then y = WINDOW.CENTER_Y
+    elseif GameState == "menu" then y = 540
+    elseif Spinner.running then y = WINDOW.CENTER_Y - Spinner.radius
+    elseif Screen.running then y = Screen.y
+    elseif Road.running then y = Road.y end
+
+    return y - Fonts.dialogue:getHeight() - 20
 end
 
 function SearchForDueEventualDialogue()

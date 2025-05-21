@@ -7,6 +7,7 @@ GridGlobalData = {
         current = 0, max = 0.88*60, running = false,
         becauseWrong = false,
     },
+    introAnimation = { current = 0, max = 1, running = true },
 }
 SquareGlobalData = {
     width = 30, height = 30,-- in px
@@ -104,7 +105,7 @@ function DrawGrid()
         end
     end
 
-    love.graphics.setLineWidth(5)
+    love.graphics.setLineWidth(SquareGlobalData.width/6)
     love.graphics.setColor(Colors[CurrentDepartment].fileOutline)
     love.graphics.rectangle("line", anchorX - spacing, anchorY - spacing, #Grid[1] * SquareGlobalData.width + spacing * 2, #Grid * SquareGlobalData.height + spacing * 2)
 
@@ -125,6 +126,24 @@ end
 function GetSquareCoords(x, y)
     local anchorX, anchorY = GetGridAnchorCoords()
     return (x - 1) * SquareGlobalData.width + anchorX, (y - 1) * SquareGlobalData.height + anchorY
+end
+
+function UpdateGridIntroAnimation()
+    if not GridGlobalData.introAnimation.running then return end
+
+    zutil.updatetimer(GridGlobalData.introAnimation, function ()
+        GridGlobalData.introAnimation.running = false
+    end, .01, GlobalDT)
+
+    if not GridGlobalData.introAnimation.running then
+        SquareGlobalData.width = SquareGlobalData.defaultWidth
+        SquareGlobalData.height = SquareGlobalData.defaultHeight
+        return
+    end
+
+    local ratio = zutil.easing.easeOutExpo(GridGlobalData.introAnimation.current)
+    SquareGlobalData.width = ratio * SquareGlobalData.defaultWidth
+    SquareGlobalData.height = ratio * SquareGlobalData.defaultHeight
 end
 
 function CheckIsAnomaly(x, y)

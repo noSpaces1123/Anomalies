@@ -1,66 +1,33 @@
 Info = {
-    showing = false,
-    yOffset = 100, scrollYOffset = 0,
-    width = 827,
+    width = 500,
     text =
-[[
-v0.2.0-alpha
+[[Anomalies v0.3.1-alpha
 
+---------------- CREDITS ----------------
 
-
-
----- CREDITS
-
-Developer, sound designer, composer, graphic designer --> Adam Lensch (frazy)
+Developer, sound designer, composer, graphic designer, game designer --> Adam Lensch (frazy)
 Idea makers --> Adam Lensch (frazy), David Lensch (avacado)
 Play testers --> David Lensch (avacado), Ben van den Bos
 
-Losing is learning.
-
-
-
-
----- LICENSE
-
-BSD 3-Clause License
-
-Copyright (c) 2025, frazy
-
-Redistribution and use in source and binary forms, with or without
-modification, are permitted provided that the following conditions are met:
-
-1. Redistributions of source code must retain the above copyright notice, this
-   list of conditions and the following disclaimer.
-
-2. Redistributions in binary form must reproduce the above copyright notice,
-   this list of conditions and the following disclaimer in the documentation
-   and/or other materials provided with the distribution.
-
-3. Neither the name of the copyright holder nor the names of its
-   contributors may be used to endorse or promote products derived from
-   this software without specific prior written permission.
-
-THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
-AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
-IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE
-FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
-DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
-SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
-CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
-OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
-OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
-]]
+Losing is learning.]]
 }
 
 
 
 function DrawInfo()
-    if not Info.showing then return end
+    if not StartedShift then return end
 
-    zutil.overlay({0,0,0,.7})
+    love.graphics.setColor(Colors[CurrentDepartment].text[1],Colors[CurrentDepartment].text[2],Colors[CurrentDepartment].text[3], .5)
 
-    love.graphics.setColor(1,1,1)
-    love.graphics.setFont(Fonts.normal)
-    love.graphics.printf(Info.text, WINDOW.CENTER_X - Info.width / 2, Info.yOffset + Info.scrollYOffset, Info.width, "left")
+    local font = Fonts.small
+    love.graphics.setFont(font)
+
+    local spacing = 10
+    local _, wrapped = font:getWrap(Info.text, Info.width)
+    local textY = WINDOW.HEIGHT - #wrapped * font:getHeight() - Sprites.frazy:getHeight() - spacing * 2
+
+    love.graphics.printf(Info.text, spacing, textY, Info.width, "left")
+
+    love.graphics.setColor(Colors[CurrentDepartment].text)
+    love.graphics.draw(Sprites.frazy, spacing, WINDOW.HEIGHT - Sprites.frazy:getHeight() - spacing)
 end

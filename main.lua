@@ -1,5 +1,6 @@
 zutil = require "zutil"
 lume = require "lume"
+anim8 = require "anim8"
 
 love.window.setFullscreen(love.system.getOS() == "OS X")
 
@@ -26,11 +27,12 @@ require "screen"
 require "road"
 require "info"
 require "rne"
+require "animations"
 
 
 
 function love.load()
-    GameName = "Anomalies"
+    NameOfTheGame = "Anomalies"
 
     zutil.alwaysrandom()
 
@@ -40,6 +42,16 @@ function love.load()
 
     Sprites = {
         pin = love.graphics.newImage("assets/sprites/pin.png", {dpiscale=6}),
+        title = love.graphics.newImage("assets/sprites/Anomalies title.png", {dpiscale=3}),
+        frazy = love.graphics.newImage("assets/sprites/frazy.png", {dpiscale=8}),
+    }
+
+    TitleFade = { current = 0, max = 1, running = true }
+
+    IntroOpeningBars = {
+        running = true,
+        y = { current = 0, actual = 0, max = WINDOW.CENTER_Y },
+        speed = 1,
     }
 
     Cursors = {
@@ -61,6 +73,8 @@ function love.load()
 
     MusicPlaying = nil
 
+    StartedShift = false
+
 
 
     Particles = {}
@@ -78,11 +92,11 @@ function love.load()
     LoadCards()
 
     LoadMusic()
-    StartMusic(zutil.randomchoice(Music))
+    StartMusic((StartedShift and zutil.randomchoice(Music) or Music[1]))
 
     InitialiseButtons()
 
-    StartDialogue("list", "greeting")
+    StartDialogue("list", (StartedShift and "greeting" or "firstEverGreeting"))
 
     ClickedWithMouse = false
 
@@ -95,56 +109,92 @@ function love.load()
         showing = false,
     }
 
+    GameState = "menu"
+
     GlobalDT = 0
 end
 
 function love.update(dt)
     GlobalDT = dt * 60
 
-    UpdateSelectedSquare()
-    UpdateParticles()
-    UpdateFileGenerationAnimation()
-    UpdateDialogue()
-    SearchForDueEventualDialogue()
-    UpdateTrailUpdateInterval()
-    UpdateTrailSpawnInterval()
-    CheckToGrantRewards()
-    UpdateButtons()
-    UpdateNewCardIndicator()
-    UpdateWheel()
-    UpdateScreen()
-    UpdateRoad()
-    UpdateRoadObstacleSpawnInterval()
-    UpdateShake()
-    UpdateMusic()
-    UpdateDepartmentTransition()
-    UpdateTimeUntilCorruption()
-    UpdateRNEPracticeWait()
-    UpdateRNEQueue()
-    CheckForEndOfContent()
+    if GameState == "game" then
+        UpdateSelectedSquare()
+        UpdateFileGenerationAnimation()
+        SearchForDueEventualDialogue()
+        UpdateTrailUpdateInterval()
+        UpdateTrailSpawnInterval()
+        CheckToGrantRewards()
+        UpdateNewCardIndicator()
+        UpdateWheel()
+        UpdateScreen()
+        UpdateRoad()
+        UpdateRoadObstacleSpawnInterval()
+        UpdateDepartmentTransition()
+        UpdateTimeUntilCorruption()
+        UpdateRNEPracticeWait()
+        UpdateRNEQueue()
+        CheckForEndOfContent()
+        UpdateRatingSubtraction()
+        ReluRating()
+        UpdateGridIntroAnimation()
+    elseif GameState == "menu" then
+        if TitleFade.running then
+            zutil.updatetimer(TitleFade, function ()
+                TitleFade.running = false
+            end, .004, GlobalDT)
+        end
+    end
 
+    UpdateShake()
+    UpdateDialogue()
+    UpdateParticles()
+    UpdateButtons()
+    UpdateMusic()
     SpawnBGParticle()
+    UpdateAnimations()
+
+    UpdateIntroOpeningBars()
 
     for _, self in ipairs(BGParticles) do
         self:update()
     end
 
-    UpdateRatingSubtraction()
-    ReluRating()
-
     UpdateCursor()
 end
 
 function love.draw()
-    if DepartmentTransition.running then
-        love.graphics.setBackgroundColor(0,0,0)
-    elseif GridGlobalData.generationAnimation.running and GridGlobalData.generationAnimation.becauseWrong then
-        love.graphics.setBackgroundColor(1,0,0)
-    else
+    if GameState == "game" then
+        if DepartmentTransition.running then
+            love.graphics.setBackgroundColor(0,0,0)
+        elseif GridGlobalData.generationAnimation.running and GridGlobalData.generationAnimation.becauseWrong then
+            love.graphics.setBackgroundColor(1,0,0)
+        else
+            love.graphics.setBackgroundColor(Colors[CurrentDepartment].bg)
+        end
+
+        DrawFrame()
+    elseif GameState == "menu" then
         love.graphics.setBackgroundColor(Colors[CurrentDepartment].bg)
+
+        for _, self in ipairs(BGParticles) do
+            self:draw()
+        end
+
+        DrawParticles()
+        DrawDialogue()
+        DrawButtons()
+
+        love.graphics.setColor(1,1,1, (TitleFade.running and TitleFade.current or 1))
+        love.graphics.draw(Sprites.title, WINDOW.CENTER_X - Sprites.title:getWidth()/2, 160)
+
+        DrawInfo()
+
+        DrawIntroOpeningBars()
     end
 
-    DrawFrame()
+
+
+    DrawCursor()
 end
 function DrawFrame()
     love.graphics.origin()
@@ -174,13 +224,10 @@ function DrawFrame()
 
     if not DepartmentTransition.running then
         DrawHandbook()
-        DrawInfo()
         DrawButtons()
     end
 
     DrawEndOfContentScreen()
-
-    DrawCursor()
 end
 
 
@@ -295,4 +342,20 @@ function DrawEndOfContentScreen()
     love.graphics.overlay(0,0,0)
     love.graphics.setFont(Fonts.normal)
     love.graphics.printf("You've reached the end of Anomalies- for now.\n\nNew updates will be out soon. Stay tuned~", 0, WINDOW.CENTER_Y - Fonts.normal:getHeight()/2, WINDOW.WIDTH, "center")
+end
+
+function UpdateIntroOpeningBars()
+    if not IntroOpeningBars.running then return end
+
+    zutil.updatetimer(IntroOpeningBars.y, function ()
+        IntroOpeningBars.running = false
+    end, 1.5, GlobalDT)
+    IntroOpeningBars.y.actual = zutil.lerp(WINDOW.CENTER_Y, 0, zutil.easing.easeOutExpo(zutil.reverselerp(0, IntroOpeningBars.y.max, IntroOpeningBars.y.current)))
+end
+function DrawIntroOpeningBars()
+    if not IntroOpeningBars.running then return end
+    love.graphics.setColor(0,0,0,1)
+    love.graphics.rectangle("fill", 0, 0, WINDOW.WIDTH, IntroOpeningBars.y.actual)
+    love.graphics.rectangle("fill", 0, WINDOW.HEIGHT - IntroOpeningBars.y.actual, WINDOW.WIDTH, IntroOpeningBars.y.actual)
+    zutil.overlay({0,0,0, 1-IntroOpeningBars.y.current/IntroOpeningBars.y.max})
 end
