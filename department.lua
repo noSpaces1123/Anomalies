@@ -120,7 +120,7 @@ function StartDepartmentTransition()
     Dialogue.playing.running = false
 
 ---@diagnostic disable-next-line: undefined-field
-    MusicPlaying:stop()
+    MusicPlaying.audio:stop()
 end
 function UpdateDepartmentTransition()
     if not DepartmentTransition.running then return end
