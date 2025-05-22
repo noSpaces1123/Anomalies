@@ -186,10 +186,15 @@ function zutil.playsfx(sfx, volume, pitch)
     return isPlaying
 end
 
---Supply a value `x`, `a`, and `b`. Returns `x` wrapped between `a` and `b`.
+--Supply a value `x`, `a`, and `b`. Returns `x` wrapped through `a` and `b`.
 function zutil.wrap(x, a, b)
-    if x < a then return zutil.wrap(b - (a - x) + 1, a, b)
-    elseif x > b then return zutil.wrap(a + (x - b) - 1, a, b)
+    if a > b then
+        local move = a
+        a = b
+        b = move
+    end
+    if x < a then return zutil.wrap(b - (a - x), a, b)
+    elseif x > b then return zutil.wrap(a + (x - b), a, b)
     else return x end
 end
 

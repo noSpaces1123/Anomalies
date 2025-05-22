@@ -3,7 +3,7 @@ Dialogue = {
         targetText = "",
         textThusFar = "",
         preliminaryWait = { current = 0, max = 1*60, done = false },
-        charInterval = { current = 0, max = 3.5, defaultMax = 3.5, },
+        charInterval = { current = 0, max = 3.5, defaultMax = 3.5, maxMax = 5.5, minMax = 0.5 },
         color = {0,0,0},
         running = false,
     },
@@ -62,6 +62,15 @@ Dialogue = {
             "It's okay. Try again. You may try again as many times as you like.",
             "Don't stress. They're just squares.",
             "I hope that didn't scare you.",
+        },
+        enterOptionsMenu = {
+            "Ah, the options menu. I hope you find what you're looking for.",
+            "Configure to your heart's desire.",
+            "You have the power to change whatever you like. Have fun.",
+            "Music too loud?",
+        },
+        changeDialogueSpeed = {
+            "Hello. This is a sentence. Here is a second sentence, a sentence with a comma."
         },
         gain_sticker_50 = {
             "Good job for reaching a rating of 50. Here's a sticker for your hard work.",
@@ -323,6 +332,8 @@ function StartDialogue(type, category_OR_eventualIndex)
     Dialogue.playing.preliminaryWait.current = 0
     Dialogue.playing.preliminaryWait.done = false
 
+    Animations.greeting.running = false
+
     if type == "list" then
         Dialogue.playing.targetText = zutil.randomchoice(Dialogue.list[category_OR_eventualIndex])
         Dialogue.playing.person = "foster"
@@ -356,6 +367,7 @@ function GetDialogueY()
     local _, y = GetGridAnchorCoords()
     if DepartmentTransition.running then y = WINDOW.CENTER_Y
     elseif GameState == "menu" then y = 540
+    elseif GameState == "options" then y = WINDOW.HEIGHT
     elseif Spinner.running then y = WINDOW.CENTER_Y - Spinner.radius
     elseif Screen.running then y = Screen.y
     elseif Road.running then y = Road.y end

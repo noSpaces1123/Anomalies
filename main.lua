@@ -11,23 +11,27 @@ WINDOW = {
 WINDOW.CENTER_X = WINDOW.WIDTH / 2
 WINDOW.CENTER_Y = WINDOW.HEIGHT / 2
 
-require "grid"
-require "interaction"
-require "particle"
-require "department"
-require "cards"
-require "data_management"
-require "dialogue"
-require "rating"
-require "rewards"
-require "button"
-require "handbook"
-require "wheel"
-require "screen"
-require "road"
-require "info"
-require "rne"
-require "animations"
+function LoadModules()
+    require "grid"
+    require "interaction"
+    require "particle"
+    require "department"
+    require "cards"
+    require "data_management"
+    require "dialogue"
+    require "rating"
+    require "rewards"
+    require "button"
+    require "handbook"
+    require "wheel"
+    require "screen"
+    require "road"
+    require "info"
+    require "rne"
+    require "animations"
+end
+
+LoadModules()
 
 
 
@@ -44,15 +48,17 @@ function love.load()
         pin = love.graphics.newImage("assets/sprites/pin.png", {dpiscale=6}),
         title = love.graphics.newImage("assets/sprites/Anomalies title.png", {dpiscale=3}),
         frazy = love.graphics.newImage("assets/sprites/frazy.png", {dpiscale=8}),
+        musicSymbol = love.graphics.newImage("assets/sprites/music symbol.png", {dpiscale=7}),
     }
 
     TitleFade = { current = 0, max = 1, running = true }
 
     IntroOpeningBars = {
-        running = true,
+        running = false,
         y = { current = 0, actual = 0, max = WINDOW.CENTER_Y },
         speed = 1,
     }
+    DoIntroAnimation = true
 
     Cursors = {
         normal = love.graphics.newImage("assets/sprites/cursor/normal.png", {dpiscale=3}),
@@ -67,13 +73,19 @@ function love.load()
         normal = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Light.ttf", 16),
         handbook = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Bold.ttf", 16),
         small = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Regular.ttf", 10),
+        smallBold = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Bold.ttf", 10),
         big = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-ExtraLight.ttf", 50),
         dialogue = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 16),
     }
 
-    MusicPlaying = nil
+    MusicPlaying = { name = nil, audio = nil }
+    MusicSetting = 1
+
+    ImmediatelyStartShift = false
+    Jumpscares = true
 
     StartedShift = false
+    TimeSpentOnShift = 0
 
 
 
@@ -86,13 +98,21 @@ function love.load()
 
     LoadData()
 
+    IntroOpeningBars.running = DoIntroAnimation
+    TitleFade.running = DoIntroAnimation
+
     -- FilesCompleted = 34
     -- ConditionsCollected = 6
 
     LoadCards()
 
     LoadMusic()
-    StartMusic((StartedShift and zutil.randomchoice(Music) or Music[1]))
+
+    if MusicSetting == 1 then
+        StartMusic((StartedShift and zutil.randomchoice(Music) or Music[1]))
+    elseif MusicSetting == 2 then
+        StartBrownNoise()
+    end
 
     InitialiseButtons()
 
@@ -110,6 +130,8 @@ function love.load()
     }
 
     GameState = "menu"
+
+    love.graphics.setBackgroundColor(Colors[CurrentDepartment].bg)
 
     GlobalDT = 0
 end
@@ -137,6 +159,7 @@ function love.update(dt)
         UpdateRatingSubtraction()
         ReluRating()
         UpdateGridIntroAnimation()
+        UpdateTimeSpentOnShift()
     elseif GameState == "menu" then
         if TitleFade.running then
             zutil.updatetimer(TitleFade, function ()
@@ -172,8 +195,8 @@ function love.draw()
             love.graphics.setBackgroundColor(Colors[CurrentDepartment].bg)
         end
 
-        DrawFrame()
-    elseif GameState == "menu" then
+        DrawGameFrame()
+    else
         love.graphics.setBackgroundColor(Colors[CurrentDepartment].bg)
 
         for _, self in ipairs(BGParticles) do
@@ -184,10 +207,24 @@ function love.draw()
         DrawDialogue()
         DrawButtons()
 
-        love.graphics.setColor(1,1,1, (TitleFade.running and TitleFade.current or 1))
-        love.graphics.draw(Sprites.title, WINDOW.CENTER_X - Sprites.title:getWidth()/2, 160)
+        if GameState == "menu" then
+            love.graphics.setColor(1,1,1, (TitleFade.running and TitleFade.current or 1))
+            love.graphics.draw(Sprites.title, WINDOW.CENTER_X - Sprites.title:getWidth()/2, 160)
 
-        DrawInfo()
+---@diagnostic disable-next-line: undefined-field
+            if StartedShift and MusicPlaying.audio and MusicPlaying.audio:isPlaying() then
+                local spacing = 10
+                love.graphics.setColor(Colors[CurrentDepartment].text)
+                love.graphics.setFont(Fonts.normal)
+                love.graphics.printf(MusicPlaying.name .. " - Anti-Hat", 0, WINDOW.HEIGHT - Fonts.normal:getHeight() - spacing, WINDOW.WIDTH - spacing * 2 - Sprites.musicSymbol:getWidth(), "right")
+
+                love.graphics.draw(Sprites.musicSymbol, WINDOW.WIDTH - spacing - Sprites.musicSymbol:getWidth(), WINDOW.HEIGHT - Sprites.musicSymbol:getHeight() - spacing)
+            end
+
+            DisplayTimeSpentOnShift()
+
+            DrawInfo()
+        end
 
         DrawIntroOpeningBars()
     end
@@ -196,7 +233,7 @@ function love.draw()
 
     DrawCursor()
 end
-function DrawFrame()
+function DrawGameFrame()
     love.graphics.origin()
 
     DrawBG()
@@ -228,6 +265,10 @@ function DrawFrame()
     end
 
     DrawEndOfContentScreen()
+end
+
+function love.quit()
+    SaveData()
 end
 
 
@@ -278,23 +319,29 @@ function LoadMusic()
     local directory = "assets/music/department " .. CurrentDepartment
     for _, fileName in ipairs(love.filesystem.getDirectoryItems(directory)) do
         if fileName ~= ".DS_Store" then
-            table.insert(Music, love.audio.newSource(directory .. "/" .. fileName, "stream"))
+            table.insert(Music, { name = zutil.split(fileName, ".")[1], audio = love.audio.newSource(directory .. "/" .. fileName, "stream") })
         end
     end
 end
 function StartMusic(music)
-    MusicPlaying = music
-    MusicPlaying:setVolume(.2)
-    MusicPlaying:play()
-end
-function UpdateMusic()
-    if DepartmentTransition.running then return end
+    if MusicSetting ~= 1 then return end
+
+    MusicPlaying.audio = music.audio
+    MusicPlaying.name = music.name
 
 ---@diagnostic disable-next-line: undefined-field
-    if not MusicPlaying:isPlaying() then
+MusicPlaying.audio:setVolume(.2)
+---@diagnostic disable-next-line: undefined-field
+    MusicPlaying.audio:play()
+end
+function UpdateMusic()
+    if DepartmentTransition.running or MusicSetting ~= 1 then return end
+
+---@diagnostic disable-next-line: undefined-field
+    if not MusicPlaying.audio:isPlaying() then
         local viable = {}
         for _, value in ipairs(Music) do
-            if value ~= MusicPlaying then
+            if value.name ~= MusicPlaying.name then
                 table.insert(viable, value)
             end
         end
@@ -307,7 +354,17 @@ function UpdateMusic()
     end
 end
 
+function StartBrownNoise()
+    SFX.brownNoise:setLooping(true)
+    zutil.playsfx(SFX.brownNoise, .1, 1)
+end
+
 function UpdateCursor()
+    if CursorState == "regular cursor" then
+        love.mouse.setVisible(true)
+        return
+    end
+
     if love.mouse.isVisible() then
         love.mouse.setVisible(false)
     end
@@ -325,6 +382,7 @@ function UpdateCursor()
     end
 end
 function DrawCursor()
+    if CursorState == "regular cursor" then return end
     local sprite = Cursors[CursorState]
     if CursorState == "invisible" then return end
     love.graphics.setColor(1,1,1)
@@ -358,4 +416,19 @@ function DrawIntroOpeningBars()
     love.graphics.rectangle("fill", 0, 0, WINDOW.WIDTH, IntroOpeningBars.y.actual)
     love.graphics.rectangle("fill", 0, WINDOW.HEIGHT - IntroOpeningBars.y.actual, WINDOW.WIDTH, IntroOpeningBars.y.actual)
     zutil.overlay({0,0,0, 1-IntroOpeningBars.y.current/IntroOpeningBars.y.max})
+end
+
+function UpdateTimeSpentOnShift()
+    TimeSpentOnShift = TimeSpentOnShift + love.timer.getDelta()
+end
+function DisplayTimeSpentOnShift()
+    if not StartedShift then return end
+    love.graphics.setFont(Fonts.smallBold)
+    love.graphics.printf(TimeInSecondsToStupidHumanFormat(TimeSpentOnShift) .. " spent on shift", 0, WINDOW.HEIGHT - Fonts.smallBold:getHeight() - 10, WINDOW.WIDTH, "center")
+end
+function TimeInSecondsToStupidHumanFormat(time)
+    local seconds = tostring(math.floor(time % 60))
+    local minutes = tostring(math.floor(time / 60 % 60))
+    local hours = tostring(math.floor(time / 60 / 60))
+    return hours .. " : " .. (#minutes == 1 and "0" or "") .. minutes .. " : " .. (#seconds == 1 and "0" or "") .. seconds
 end

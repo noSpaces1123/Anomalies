@@ -1,3 +1,5 @@
+SaveFileDirectory = "data.csv"
+
 function SaveData()
     local data = {
         Grid = Grid,
@@ -17,32 +19,36 @@ function SaveData()
         RNEQueueAddInterval = RNEQueueAddInterval, RNEQueueList = RNEQueueList,
         TimeUntilCorruption = TimeUntilCorruption,
         StartedShift = StartedShift,
+        CursorState = CursorState,
+        DoIntroAnimation = DoIntroAnimation,
+        ImmediatelyStartShift = ImmediatelyStartShift,
+        Jumpscares = Jumpscares,
+        MusicSetting = MusicSetting,
+        TimeSpentOnShift = TimeSpentOnShift,
+        other = {
+            dialogueCharIntervalDefaultMax = Dialogue.playing.charInterval.defaultMax,
+        },
     }
 
     local encoded = love.data.encode("string", "base64", lume.serialize(data))
 
-    love.filesystem.write("data.csv", encoded)
+    love.filesystem.write(SaveFileDirectory, encoded)
 end
 
 function LoadData()
-    if not love.filesystem.getInfo("data.csv") then return false end
+    if not love.filesystem.getInfo(SaveFileDirectory) then return false end
 
-    local data = lume.deserialize(love.data.decode("string", "base64", love.filesystem.read("data.csv")))
-
-    -- eventualDialoguesTriggered = nil
+    local data = lume.deserialize(love.data.decode("string", "base64", love.filesystem.read(SaveFileDirectory)))
 
     for key, value in pairs(data) do
-        if value ~= nil and _G[key] ~= nil then
+        if key ~= "other" and value ~= nil and _G[key] ~= nil then
             _G[key] = value
         end
     end
 
-    -- if eventualDialoguesTriggered then
-    --     for index, triggered in ipairs(eventualDialoguesTriggered) do
-    --         Dialogue.eventual[index].triggered = triggered
-    --         if triggered then error() end
-    --     end
-    -- end
+    if data.other then
+        Dialogue.playing.charInterval.defaultMax = zutil.nilcheck(data.other.dialogueCharIntervalDefaultMax, data.other.dialogueCharIntervalDefaultMax, Dialogue.playing.charInterval.defaultMax)
+    end
 
     CalculateGridSize()
 end

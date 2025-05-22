@@ -230,7 +230,7 @@ function love.keypressed(key)
 end
 
 function Wrong()
-    zutil.playsfx(SFX.notAnAnomaly, .8, 1)
+    zutil.playsfx(SFX["notAnAnomaly" .. (Jumpscares and "" or "Calm")], .8, 1)
 
     StartDialogue("list", "wrong")
 
