@@ -79,6 +79,7 @@ function love.load()
         handbook = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Bold.ttf", 16),
         small = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Regular.ttf", 10),
         smallBold = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Bold.ttf", 10),
+        smallBoldExpanded = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Expanded-Bold.ttf", 10),
         big = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-ExtraLight.ttf", 50),
         dialogue = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 16),
     }
@@ -109,6 +110,7 @@ function love.load()
     -- FilesCompleted = 30
     -- ConditionsCollected = 6
     -- CurrentDepartment = "B"
+    -- WonSpinner = true
 
     LoadCards()
 
@@ -217,6 +219,11 @@ function love.draw()
         if GameState == "menu" then
             love.graphics.setColor(SetTitleColor())
             love.graphics.draw(Sprites.title, WINDOW.CENTER_X - Sprites.title:getWidth()/2, 160)
+
+            if StartedShift then
+                love.graphics.setFont(Fonts.smallBoldExpanded)
+                love.graphics.print("DEPARTMENT "..CurrentDepartment, 635, 250)
+            end
 
 ---@diagnostic disable-next-line: undefined-field
             if StartedShift and MusicPlaying.audio and MusicPlaying.audio:isPlaying() then

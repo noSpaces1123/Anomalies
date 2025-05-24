@@ -110,16 +110,21 @@ AllConditions = {
         },
         {
             parts = {
-                { offset = { y = -1, x = 0 }, type = 0 },
-                { offset = { y = 0, x = 1 }, type = 0 },
+                { offset = { y = 0, x = 1 }, type = 3 },
                 { offset = { y = 1, x = -1 }, type = 0 },
             },
         },
         {
             parts = {
-                { offset = { y = 0, x = 1 }, type = 3 },
-                { offset = { y = 1, x = -1 }, type = 0 },
+                { offset = { y = 0, x = -1 }, type = 0 },
             },
+            isNot = true,
+        },
+        {
+            parts = {
+                { offset = { y = 1, x = 0 }, type = 0 },
+            },
+            isNot = true,
         },
     }
 }
@@ -158,7 +163,7 @@ function DrawCards()
     local anchorX, anchorY = WINDOW.CENTER_X - ConditionsCollected / 2 * Cards[1].sprite:getWidth(), WINDOW.HEIGHT - spacing - Cards[1].sprite:getHeight() + (1 - alpha) * Cards[1].sprite:getWidth()
 
     spacing = 300
-    love.graphics.setColor(0,0,0, 1 - alpha)
+    love.graphics.setColor(Colors[CurrentDepartment].text[1],Colors[CurrentDepartment].text[2],Colors[CurrentDepartment].text[3], 1 - alpha)
     love.graphics.setLineWidth(1)
     local y = WINDOW.HEIGHT - 10
     love.graphics.line(spacing, y, WINDOW.WIDTH - spacing, y)

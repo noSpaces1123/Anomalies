@@ -46,7 +46,7 @@ Colors = {
         squares = {13/255, 21/255, 26/255},
         screenBg = {13/255, 21/255, 26/255},
         screenOutline = {167/255, 190/255, 211/255},
-        screenDots = {166/255, 52/255, 70/255},
+        screenDots = {167/255, 190/255, 211/255},
         screenGrid = {13*1.2/255, 21*1.2/255, 26*1.2/255},
         roadBg = {13/255, 21/255, 26/255},
         roadOutline = {167/255, 190/255, 211/255},
@@ -166,7 +166,7 @@ function UpdateDepartmentTransition()
 end
 
 function DrawBG()
-    if CurrentDepartment == "B" then
+    if CurrentDepartment ~= "A" and not DepartmentTransition.running then
         local width = 30
         local maxDistance = 400
         local colorType = (Screen.running and "screenOutline" or "fileOutline")

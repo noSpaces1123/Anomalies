@@ -321,7 +321,7 @@ Dialogue = {
             text = "I'm Ms Yoke. I can't talk now. See you later.", person = "yoke",
             when = function ()
                 local cond = CurrentDepartment == "X" and FilesCompleted == 0
-                if cond then ConditionsCollected = 2 end
+                if cond then ConditionsCollected = 3 end
                 return cond
             end
         },
@@ -332,10 +332,18 @@ Dialogue = {
             end
         },
         {
-            text = "Ms Yoke told me to bring these two cards to you...", person = "atrium",
+            text = "Ms Yoke told me to bring this card to you...", person = "atrium",
             when = function ()
                 local cond = CurrentDepartment == "X" and FilesCompleted == 4
                 if cond then ConditionsCollected = 4 end
+                return cond
+            end
+        },
+        {
+            text = "Hey. I would bring these last cards to you one by one, but I'm busy. Take the last ones.", person = "yoke",
+            when = function ()
+                local cond = CurrentDepartment == "X" and FilesCompleted == 9
+                if cond then ConditionsCollected = 7 end
                 return cond
             end
         },
