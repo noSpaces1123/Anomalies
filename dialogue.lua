@@ -6,11 +6,14 @@ Dialogue = {
         charInterval = { current = 0, max = 3.5, defaultMax = 3.5, maxMax = 5.5, minMax = 0.5 },
         color = {0,0,0},
         running = false,
+        limit = 1000,
     },
     peopleColors = {
         ["foster"] = Colors[CurrentDepartment].text,
         ["michael"] = {0,.4,.8},
         ["noir"] = {221/255, 45/255, 74/255},
+        ["atrium"] = {0, 201/255, 128/255},
+        ["yoke"] = {211/255, 213/255, 124/255},
     },
     list = {
         firstEverGreeting = {
@@ -97,10 +100,10 @@ Dialogue = {
             "20 files in the bag. The boss will be happy.",
             "20 files searched and filtrated. Great job. Have a sticker.",
         },
-        gain_filescompleted_40 = {
-            "40 files completed. For you, take a sticker.",
-            "40 files done. Great job.",
-            "40 files all done. I'm proud.",
+        gain_filescompleted_30 = {
+            "30 files completed. For you, take a sticker.",
+            "30 files done. Great job.",
+            "30 files all done. I'm proud.",
         },
         gain_filescompleted_70 = {
             "I see you're really starting to settle in. 70 files done.",
@@ -161,9 +164,9 @@ Dialogue = {
         {
             text = "Annoyed by those diagonal black squares strewn around? You've got a card to fix half of them.",
             when = function ()
-                local cond = FilesCompleted == 9
+                local cond = CurrentDepartment == "A" and FilesCompleted == 9
                 if cond then ConditionsCollected = 5 end
-                return CurrentDepartment == "A" and cond
+                return cond
             end
         },
         {
@@ -208,6 +211,14 @@ Dialogue = {
                 return cond
             end
         },
+        {
+            text = "Cleansing Department B is your next step. I hope your time here in Department A has been fun.",
+            when = function ()
+                local cond = CurrentDepartment == "A" and FilesCompleted == 27
+                if cond then UseScreens = true end
+                return cond
+            end
+        },
 
         {
             text = "Wake up.", person = "noir",
@@ -217,9 +228,11 @@ Dialogue = {
         },
 
         {
-            text = "Welcome to Cleansing Department B. Look at your cards, they're not the same as in Department A.", person = "noir",
+            text = "Welcome to Cleansing Department B. Look at your cards, they're not the same as in Department A.", person = "noir", animation = "greeting",
             when = function ()
-                return CurrentDepartment == "B" and FilesCompleted == 0
+                local cond = CurrentDepartment == "B" and FilesCompleted == 0
+                if cond then ConditionsCollected = 2 end
+                return cond
             end
         },
         {
@@ -251,25 +264,39 @@ Dialogue = {
             end
         },
         {
-            text = "New card. Check.", person = "noir",
+            text = "Something new: RNE Queues. Remember how, when you were in Department A, your RNEs were sent to other employees while you were learning? It's time for you to receive and complete RNEs from other learning employees now. Work on your RNE Queue with the button in the bottom right.", person = "noir",
             when = function ()
                 local cond = CurrentDepartment == "B" and FilesCompleted == 9
+                if cond then UnlockedRNEQueue = true ; SaveData() end
+                return cond
+            end
+        },
+        {
+            text = "New card. Check.", person = "noir",
+            when = function ()
+                local cond = CurrentDepartment == "B" and FilesCompleted == 10
                 if cond then ConditionsCollected = 5 end
                 return cond
             end
         },
         {
+            text = "Hi, I'm Atrium. I- I hear you're new here in Department B! It's been a long 20 years here... I look forward to- to getting to know you.", person = "atrium",
+            when = function ()
+                return CurrentDepartment == "B" and FilesCompleted == 13
+            end
+        },
+        {
             text = "You have a new RNE to worry about. Read about roads in the handbook.", person = "noir",
             when = function ()
-                local cond = CurrentDepartment == "B" and FilesCompleted == 10
+                local cond = CurrentDepartment == "B" and FilesCompleted == 15
                 if cond then UseRoads = true end
                 return cond
             end
         },
         {
-            text = "Hey! I just moved to Department B. Mr Noir asked me to give this new card to you.", person = "michael",
+            text = "Hey! Remember me? I just moved to Department B. Mr Noir asked me to give this new card to you.", person = "michael",
             when = function ()
-                local cond = CurrentDepartment == "B" and FilesCompleted == 12
+                local cond = CurrentDepartment == "B" and FilesCompleted == 17
                 if cond then ConditionsCollected = 6 end
                 return cond
             end
@@ -277,8 +304,38 @@ Dialogue = {
         {
             text = "Here's your last card.", person = "noir",
             when = function ()
-                local cond = CurrentDepartment == "B" and FilesCompleted == 20
+                local cond = CurrentDepartment == "B" and FilesCompleted == 21
                 if cond then ConditionsCollected = 7 end
+                return cond
+            end
+        },
+
+        {
+            text = "Welcome to Department X.", person = "yoke",
+            when = function ()
+                return CurrentDepartment == "B" and DepartmentTransition.running and DepartmentTransition.currentPhase == 2
+            end
+        },
+
+        {
+            text = "I'm Ms Yoke. I can't talk now. See you later.", person = "yoke",
+            when = function ()
+                local cond = CurrentDepartment == "X" and FilesCompleted == 0
+                if cond then ConditionsCollected = 2 end
+                return cond
+            end
+        },
+        {
+            text = "It's me, Atrium! I just got moved here as well, as part of the migration... How are you settling in? This place is weird...", person = "atrium", animation = "greeting",
+            when = function ()
+                return CurrentDepartment == "X" and FilesCompleted == 3
+            end
+        },
+        {
+            text = "Ms Yoke told me to bring these two cards to you...", person = "atrium",
+            when = function ()
+                local cond = CurrentDepartment == "X" and FilesCompleted == 4
+                if cond then ConditionsCollected = 4 end
                 return cond
             end
         },
@@ -288,7 +345,7 @@ Dialogue = {
 
 
 function UpdateDialogue()
-    if not Dialogue.playing.running or RNEPractice.running then return end
+    if not Dialogue.playing.running or RNEPractice.running or GridGlobalData.generationAnimation.running or Spinner.running or Road.running or Screen.running then return end
 
     if not Dialogue.playing.preliminaryWait.done then
         zutil.updatetimer(Dialogue.playing.preliminaryWait, function ()
@@ -318,12 +375,13 @@ function UpdateDialogue()
             Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.defaultMax
         end
 
-        zutil.playsfx(SFX[Dialogue.playing.person], .05, math.random()/2+.5)
+        zutil.playsfx(SFX[Dialogue.playing.person], (Dialogue.playing.person == "yoke" and .15 or .05), math.random()/2+.5)
     end, 1, GlobalDT)
 end
 
-function StartDialogue(type, category_OR_eventualIndex)
+function StartDialogue(type, category_OR_eventualIndex, animation)
     if type == "list" and CurrentDepartment ~= "A" then return end
+    if type == "list" and (category_OR_eventualIndex == "completeFile" or category_OR_eventualIndex == "wrong") and (Dialogue.playing.running or zutil.weightedbool(60)) then return end
 
     Dialogue.playing.running = true
     Dialogue.playing.textThusFar = ""
@@ -332,15 +390,17 @@ function StartDialogue(type, category_OR_eventualIndex)
     Dialogue.playing.preliminaryWait.current = 0
     Dialogue.playing.preliminaryWait.done = false
 
-    Animations.greeting.running = false
+    if animation then
+        Animations[animation].running = true
+    else
+        for _, value in pairs(Animations) do
+            value.running = false
+        end
+    end
 
     if type == "list" then
         Dialogue.playing.targetText = zutil.randomchoice(Dialogue.list[category_OR_eventualIndex])
         Dialogue.playing.person = "foster"
-
-        if category_OR_eventualIndex == "greeting" or category_OR_eventualIndex == "firstEverGreeting" then
-            Animations.greeting.running = true
-        end
     elseif type == "eventual" then
         Dialogue.playing.targetText = Dialogue.eventual[category_OR_eventualIndex].text
         Dialogue.playing.person = (Dialogue.eventual[category_OR_eventualIndex].person and Dialogue.eventual[category_OR_eventualIndex].person or "foster")
@@ -350,45 +410,51 @@ function StartDialogue(type, category_OR_eventualIndex)
 end
 
 function DrawDialogue()
-    if RNEPractice.wait.running then return end
+    if RNEPractice.wait.running or GridGlobalData.generationAnimation.running or Spinner.running or Road.running or Screen.running then return end
 
     local y = GetDialogueY()
 
-    local limit = 1000
-    local spacing = (WINDOW.WIDTH - limit) / 2
-    local _, wrappedText = Fonts.dialogue:getWrap(Dialogue.playing.textThusFar, limit)
+    local spacing = (WINDOW.WIDTH - Dialogue.playing.limit) / 2
+    local _, wrappedText = Fonts.dialogue:getWrap(Dialogue.playing.textThusFar, Dialogue.playing.limit)
     love.graphics.setColor(Dialogue.playing.color)
     love.graphics.setFont(Fonts.dialogue)
-    love.graphics.printf(Dialogue.playing.textThusFar, spacing, y - (#wrappedText - 1) * Fonts.dialogue:getHeight(), limit, "center")
+    love.graphics.printf(Dialogue.playing.textThusFar, spacing, y - (#wrappedText - 1) * Fonts.dialogue:getHeight(), Dialogue.playing.limit, "center")
 
-    DrawGreetingAnimation()
+    local animationToDraw
+    for key, value in pairs(Animations) do
+        if value.running then
+            animationToDraw = key
+            break
+        end
+    end
+
+    if animationToDraw then
+        DrawAnimation(animationToDraw)
+    end
 end
 function GetDialogueY()
     local _, y = GetGridAnchorCoords()
     if DepartmentTransition.running then y = WINDOW.CENTER_Y
     elseif GameState == "menu" then y = 540
-    elseif GameState == "options" then y = WINDOW.HEIGHT
-    elseif Spinner.running then y = WINDOW.CENTER_Y - Spinner.radius
-    elseif Screen.running then y = Screen.y
-    elseif Road.running then y = Road.y end
+    elseif GameState == "options" then y = WINDOW.HEIGHT end
 
     return y - Fonts.dialogue:getHeight() - 20
 end
 
 function SearchForDueEventualDialogue()
+    local condscollectedbefore = ConditionsCollected
     local triggered = false
     for index, dialogue in ipairs(Dialogue.eventual) do
-        local condscollectedbefore = ConditionsCollected
-
         if not dialogue.triggered and dialogue.when() then
-            StartDialogue("eventual", index)
+            StartDialogue("eventual", index, dialogue.animation)
             dialogue.triggered = true
             triggered = true
         end
-
-        if ConditionsCollected > condscollectedbefore then
-            NewCardIndicator.on = true
-        end
     end
     if triggered then SaveData() end
+
+    if ConditionsCollected > condscollectedbefore then
+        NewCardIndicator.on = true
+        Animations.newCard.running = true
+    end
 end

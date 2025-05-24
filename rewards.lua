@@ -14,8 +14,8 @@ Rewards = {
     { name = "filescompleted_20", requirement = function ()
         return FilesCompleted >= 20
     end },
-    { name = "filescompleted_40", requirement = function ()
-        return FilesCompleted >= 40
+    { name = "filescompleted_30", requirement = function ()
+        return FilesCompleted >= 30
     end },
     { name = "filescompleted_70", requirement = function ()
         return FilesCompleted >= 70
@@ -42,7 +42,7 @@ function CheckToGrantRewards()
 
         if not RewardsCollected[data.name] and data.requirement() then
             RewardsCollected[data.name] = true
-            StartDialogue("list", "gain_" .. data.name)
+            StartDialogue("list", "gain_" .. data.name, "gainSticker")
             zutil.playsfx(SFX.reward, .3, 1)
             got = true
 

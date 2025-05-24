@@ -98,7 +98,12 @@ function DrawRoad()
     love.graphics.setColor(Colors[CurrentDepartment].roadOutline)
     for _, self in ipairs(Road.obstacles) do
         local startX = Road.x + Road.width/Road.columns*(self.column - 1)
-        love.graphics.line(startX, self.y + Road.y, startX+Road.width/Road.columns, self.y + Road.y)
+        local endX = startX+Road.width/Road.columns
+        local y = self.y + Road.y
+        love.graphics.line(startX, y, endX, y)
+
+        love.graphics.setFont(Fonts.small)
+        love.graphics.printf(zutil.floor(self.y, -1), startX, y - Fonts.small:getHeight() - 5, endX - startX, "center")
     end
 
     love.graphics.setColor(Colors[CurrentDepartment].roadPlayer)

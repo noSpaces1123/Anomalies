@@ -52,6 +52,11 @@ function love.load()
     }
 
     TitleFade = { current = 0, max = 1, running = true }
+    TitleColor = {
+        lerpT = 0, lerpTSpeed = 1/(10*60),
+        lerpEnds = {},
+        lerpEnd2Index = 2,
+    }
 
     IntroOpeningBars = {
         running = false,
@@ -101,8 +106,9 @@ function love.load()
     IntroOpeningBars.running = DoIntroAnimation
     TitleFade.running = DoIntroAnimation
 
-    -- FilesCompleted = 34
+    -- FilesCompleted = 30
     -- ConditionsCollected = 6
+    -- CurrentDepartment = "B"
 
     LoadCards()
 
@@ -116,7 +122,7 @@ function love.load()
 
     InitialiseButtons()
 
-    StartDialogue("list", (StartedShift and "greeting" or "firstEverGreeting"))
+    StartDialogue("list", (StartedShift and "greeting" or "firstEverGreeting"), "greeting")
 
     ClickedWithMouse = false
 
@@ -175,6 +181,7 @@ function love.update(dt)
     UpdateMusic()
     SpawnBGParticle()
     UpdateAnimations()
+    UpdateTitleColor()
 
     UpdateIntroOpeningBars()
 
@@ -208,7 +215,7 @@ function love.draw()
         DrawButtons()
 
         if GameState == "menu" then
-            love.graphics.setColor(1,1,1, (TitleFade.running and TitleFade.current or 1))
+            love.graphics.setColor(SetTitleColor())
             love.graphics.draw(Sprites.title, WINDOW.CENTER_X - Sprites.title:getWidth()/2, 160)
 
 ---@diagnostic disable-next-line: undefined-field
@@ -249,7 +256,7 @@ function DrawGameFrame()
         DrawWheel()
         DrawScreen()
         DrawRoad()
-        DrawDisplays()
+        DrawGameDisplays()
         DrawParticles()
         DrawCards()
         DrawRewards()
@@ -273,7 +280,7 @@ end
 
 
 
-function DrawDisplays()
+function DrawGameDisplays()
     local spacing = 10
 
     love.graphics.setColor(Colors[CurrentDepartment].text)
@@ -300,11 +307,12 @@ function SpawnBGParticle()
 
     local color = {Colors[CurrentDepartment].bgParticles[1],Colors[CurrentDepartment].bgParticles[2],Colors[CurrentDepartment].bgParticles[3]}
 
-    table.insert(BGParticles, NewParticle(x, y, math.random()*3+1, color, math.random()/4, math.deg(zutil.anglebetween(x, y, WINDOW.CENTER_X, WINDOW.CENTER_Y)), 0,
+    table.insert(BGParticles, NewParticle(x, y, math.random()*3+1, color, math.random()/4, 0, 0,
     math.random(100, 300), function (self)
         if self.lifespan >= self.startingLifespan - 100 then
             self.color[4] = (self.startingLifespan - self.lifespan) / 100 * .2
         end
+        self.degrees = math.deg(zutil.anglebetween(self.x, self.y, love.mouse.getX(), love.mouse.getY()))
     end))
 end
 
@@ -431,4 +439,30 @@ function TimeInSecondsToStupidHumanFormat(time)
     local minutes = tostring(math.floor(time / 60 % 60))
     local hours = tostring(math.floor(time / 60 / 60))
     return hours .. " : " .. (#minutes == 1 and "0" or "") .. minutes .. " : " .. (#seconds == 1 and "0" or "") .. seconds
+end
+
+function UpdateTitleColor()
+    if #Colors[CurrentDepartment].titleColors > 1 then
+        if TitleColor.lerpT >= 1 or #TitleColor.lerpEnds == 0 then
+            TitleColor.lerpEnd2Index = zutil.wrap(TitleColor.lerpEnd2Index + (#TitleColor.lerpEnds > 0 and 1 or 0), 0, #Colors[CurrentDepartment].titleColors)
+            TitleColor.lerpEnds = {Colors[CurrentDepartment].titleColors[zutil.wrap(TitleColor.lerpEnd2Index-1, 1, #Colors[CurrentDepartment].titleColors + 1)], Colors[CurrentDepartment].titleColors[TitleColor.lerpEnd2Index]}
+            TitleColor.lerpT = 0
+        end
+
+        TitleColor.lerpT = TitleColor.lerpT + TitleColor.lerpTSpeed * GlobalDT
+    end
+end
+function SetTitleColor()
+    if #Colors[CurrentDepartment].titleColors == 1 then
+        love.graphics.setColor(Colors[CurrentDepartment].titleColors[1])
+        return Colors[CurrentDepartment].titleColors[1][1], Colors[CurrentDepartment].titleColors[1][2], Colors[CurrentDepartment].titleColors[1][3]
+    else
+        local color = {}
+        for i = 1, 3 do
+            table.insert(color, zutil.lerp(TitleColor.lerpEnds[1][i], TitleColor.lerpEnds[2][i], TitleColor.lerpT))
+        end
+        table.insert(color, (TitleFade.running and TitleFade.current or 1))
+
+        return color[1], color[2], color[3], color[4]
+    end
 end

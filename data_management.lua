@@ -9,7 +9,6 @@ function SaveData()
         TrailSpawnInterval = TrailSpawnInterval, Trails = Trails,
         Rating = Rating, RatingSubtraction = RatingSubtraction,
         RewardsCollected = RewardsCollected,
-        -- eventualDialoguesTriggered = eventualDialoguesTriggered,
         ConditionsCollected = ConditionsCollected,
         UseSpinners = UseSpinners, UseScreens = UseScreens,
         WonScreen = WonScreen, WonSpinner = WonSpinner,
@@ -25,6 +24,7 @@ function SaveData()
         Jumpscares = Jumpscares,
         MusicSetting = MusicSetting,
         TimeSpentOnShift = TimeSpentOnShift,
+        UnlockedRNEQueue = UnlockedRNEQueue,
         other = {
             dialogueCharIntervalDefaultMax = Dialogue.playing.charInterval.defaultMax,
         },

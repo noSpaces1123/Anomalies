@@ -13,41 +13,47 @@ Colors = {
         screenOutline = {0,0,0},
         screenDots = {0,0,0},
         screenGrid = {.95,.95,.95},
+        buttonFill = {1,1,1},
+        titleColors = { {1,1,1} }
     },
 
     B = {
-        bg = {1/255, 4/255, 0},
+        bg = {3/255, 3/255, 3/355},
         bgParticles = {232/255, 238/255, 242/255},
         fileBg = {232/255, 238/255, 242/255},
         fileOutline = {232/255, 238/255, 242/255},
         text = {232/255, 238/255, 242/255},
         type3Square = {221/255, 45/255, 74/255},
-        squares = {1/255, 4/255, 0},
-        screenBg = {1/255, 4/255, 0},
+        squares = {3/255, 3/255, 3/355},
+        screenBg = {3/255, 3/255, 3/355},
         screenOutline = {221/255, 45/255, 74/255},
         screenDots = {232/255, 238/255, 242/255},
         screenGrid = {221/255/2, 45/255/2, 74/255/2},
         roadBg = {232/255, 238/255, 242/255},
-        roadOutline = {1/255, 4/255, 0},
+        roadOutline = {3/255, 3/255, 3/355},
         roadPlayer = {221/255, 45/255, 74/255},
+        buttonFill = {232/255, 238/255, 242/255},
+        titleColors = { {232/255, 238/255, 242/255}, {221/255, 45/255, 74/255} }
     },
 
-    -- X = {
-    --     bg = {1/255, 4/255, 0},
-    --     bgParticles = {232/255, 238/255, 242/255},
-    --     fileBg = {232/255, 238/255, 242/255},
-    --     fileOutline = {232/255, 238/255, 242/255},
-    --     text = {232/255, 238/255, 242/255},
-    --     type3Square = {221/255, 45/255, 74/255},
-    --     squares = {1/255, 4/255, 0},
-    --     screenBg = {1/255, 4/255, 0},
-    --     screenOutline = {221/255, 45/255, 74/255},
-    --     screenDots = {232/255, 238/255, 242/255},
-    --     screenGrid = {221/255/2, 45/255/2, 74/255/2},
-    --     roadBg = {232/255, 238/255, 242/255},
-    --     roadOutline = {1/255, 4/255, 0},
-    --     roadPlayer = {221/255, 45/255, 74/255},
-    -- },
+    X = {
+        bg = {13/255, 21/255, 26/255},
+        bgParticles = {167/255, 190/255, 211/255},
+        fileBg = {167/255, 190/255, 211/255},
+        fileOutline = {129/255, 173/255, 200/255},
+        text = {129/255, 173/255, 200/255},
+        type3Square = {104/255, 139/255, 88/255},
+        squares = {13/255, 21/255, 26/255},
+        screenBg = {13/255, 21/255, 26/255},
+        screenOutline = {167/255, 190/255, 211/255},
+        screenDots = {166/255, 52/255, 70/255},
+        screenGrid = {13*1.2/255, 21*1.2/255, 26*1.2/255},
+        roadBg = {13/255, 21/255, 26/255},
+        roadOutline = {167/255, 190/255, 211/255},
+        roadPlayer = {212/255, 213/255, 124/255},
+        buttonFill = {167/255, 190/255, 211/255},
+        titleColors = { {167/255, 190/255, 211/255}, {104/255, 139/255, 88/255}, {166/255, 52/255, 70/255} }
+    },
 }
 
 DepartmentData = {
@@ -55,7 +61,7 @@ DepartmentData = {
         squarePalette = { ["0"] = 1, ["1"] = 1, ["2"] = 1 },
         shutterSpeed = 2,
         screenDotAlphaDecreaseSpeed = .02,
-        pointerAcceleration = .04,
+        pointerAcceleration = .04, windowDegreeWidth = 25,
         findGridWidthAndHeight = function ()
             GridGlobalData.width = math.floor(FilesCompleted / 3) + 5
             GridGlobalData.height = GridGlobalData.width
@@ -66,10 +72,26 @@ DepartmentData = {
         squarePalette = { ["0"] = 6, ["1"] = 1, ["2"] = 1, ["3"] = 1 },
         shutterSpeed = 4,
         screenDotAlphaDecreaseSpeed = .04,
-        pointerAcceleration = .07,
+        pointerAcceleration = .07, windowDegreeWidth = 25,
         findGridWidthAndHeight = function ()
             local find = function ()
                 return zutil.clamp(math.floor(FilesCompleted / 3) + 9 + math.random(-3, 4), 4, math.huge)
+            end
+
+            GridGlobalData.width = find()
+            GridGlobalData.height = find()
+        end,
+    },
+
+    X = {
+        squarePalette = { ["0"] = 3, ["1"] = 5, ["2"] = 5, ["3"] = 1 },
+        shutterSpeed = 5,
+        screenDotAlphaDecreaseSpeed = .05,
+        pointerAcceleration = .07, windowDegreeWidth = 18,
+        trailSpawnInterval = 3*60,
+        findGridWidthAndHeight = function ()
+            local find = function ()
+                return zutil.clamp(math.floor(FilesCompleted / 3) + 12 + math.random(-2, 2), 4, math.huge)
             end
 
             GridGlobalData.width = find()
@@ -85,9 +107,14 @@ DepartmentTransition = {
         { current = 0, max = 1*60, onlyRunIf = function ()
             return not Dialogue.playing.running
         end, completeFunction = function ()
-            CurrentDepartment = "B"
+            if CurrentDepartment == "A" then
+                CurrentDepartment = "B"
+            elseif CurrentDepartment == "B" then
+                CurrentDepartment = "X"
+            end
+
             FilesCompleted = 0
-            ConditionsCollected = 2
+            ConditionsCollected = 1
             Rating = 0
 
             UseSpinners = true
@@ -120,7 +147,7 @@ function StartDepartmentTransition()
     Dialogue.playing.running = false
 
 ---@diagnostic disable-next-line: undefined-field
-    MusicPlaying.audio:stop()
+    if MusicPlaying.audio then MusicPlaying.audio:stop() end
 end
 function UpdateDepartmentTransition()
     if not DepartmentTransition.running then return end

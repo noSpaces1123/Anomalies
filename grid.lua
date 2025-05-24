@@ -290,13 +290,14 @@ function UpdateTrailUpdateInterval()
     zutil.updatetimer(TrailUpdateInterval, UpdateTrails, 1, GlobalDT)
 end
 function UpdateTrailSpawnInterval()
+    TrailSpawnInterval.max = zutil.nilcheck(DepartmentData[CurrentDepartment].trailSpawnInterval, DepartmentData[CurrentDepartment].trailSpawnInterval, TrailSpawnInterval.max)
     zutil.updatetimer(TrailSpawnInterval, NewTrail, 1, GlobalDT)
 end
 
 
 
 function UpdateTimeUntilCorruption()
-    if CurrentDepartment == "A" or Spinner.running or Screen.running or Road.running or GridGlobalData.generationAnimation.running or DepartmentTransition.running or RNEPractice.wait.running then return end
+    if true or CurrentDepartment == "A" or Spinner.running or Screen.running or Road.running or GridGlobalData.generationAnimation.running or DepartmentTransition.running or RNEPractice.wait.running then return end
     if EndOfContent.showing then return end
     zutil.updatetimer(TimeUntilCorruption, function ()
         Wrong()

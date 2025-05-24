@@ -44,8 +44,8 @@ function PopSquare(x, y, conditionsMet)
     ClearGoal = ClearGoal - 1
 
     if ClearGoal <= 0 then
-        if FilesCompleted < 35 then CompleteFile()
-        elseif CurrentDepartment == "A" then
+        if FilesCompleted < 30 then CompleteFile()
+        else
             StartDepartmentTransition()
         end
     else
@@ -186,7 +186,7 @@ end
 
 function love.wheelmoved(_, y)
     if Handbook.showing then
-        Handbook.scrollYOffset = zutil.clamp(Handbook.scrollYOffset + y * 7, -Handbook.pageSprites[1]:getHeight() + WINDOW.HEIGHT - Handbook.yOffset * 2, 0)
+        Handbook.scrollYOffset = zutil.clamp(Handbook.scrollYOffset + y * 7 * (love.system.getOS() == "OS X" and 1 or 5), -Handbook.pageSprites[1]:getHeight() + WINDOW.HEIGHT - Handbook.yOffset * 2, 0)
     elseif not GridGlobalData.introAnimation.running then
         SquareGlobalData.width = zutil.clamp(SquareGlobalData.width + y, 5, 30)
 
@@ -207,6 +207,7 @@ function love.keypressed(key)
         local pagesAllowed = 1
         if UseSpinners then pagesAllowed = pagesAllowed + 1 end
         if UseScreens then pagesAllowed = pagesAllowed + 1 end
+        if UseRoads then pagesAllowed = pagesAllowed + 1 end
 
         Handbook.page = zutil.clamp(Handbook.page, 1, pagesAllowed)
 
@@ -260,7 +261,11 @@ function CompleteFile()
         Dialogue.textThusFar = ""
     end
 
-    Animations.greeting.running = false
+    for _, value in pairs(Animations) do
+        value.running = false
+    end
+
+    if not Dialogue.playing.running then Dialogue.playing.textThusFar = "" end
 
     StartDialogue("list", "completeFile")
 

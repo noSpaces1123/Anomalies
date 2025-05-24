@@ -13,6 +13,7 @@ RNEQueue = {
 }
 RNEQueueAddInterval = { current = 0, max = 20*60 }
 RNEQueueList = {}
+UnlockedRNEQueue = false
 
 
 
@@ -42,7 +43,7 @@ function DrawRNEPracticeWaitScreen()
 end
 
 function UpdateRNEQueue()
-    if CurrentDepartment ~= "B" then return end
+    if not UnlockedRNEQueue then return end
 
     zutil.updatetimer(RNEQueueAddInterval, function ()
         if #RNEQueueList < RNEQueue.listMax then
@@ -59,7 +60,9 @@ function UpdateRNEQueue()
     end, 1, GlobalDT)
 end
 function NewRNEQueueItem()
-    table.insert(RNEQueueList, zutil.randomchoice({"Wheel","Screen","Road"}))
+    local list = {"Wheel","Screen"}
+    if UseRoads then table.insert(list, "Road") end
+    table.insert(RNEQueueList, zutil.randomchoice(list))
 end
 function StartRNEFromQueue()
     if #RNEQueueList <= 0 then return end

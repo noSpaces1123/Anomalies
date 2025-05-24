@@ -1,13 +1,13 @@
 Info = {
     width = 500,
     text =
-[[Anomalies v0.3.3-alpha
+[[Anomalies v0.4.0-alpha
 
 ---------------- CREDITS ----------------
 
-Developer, sound designer, composer, graphic designer, game designer --> Adam Lensch (frazy)
-Idea makers --> Adam Lensch (frazy), David Lensch (avacado)
-Play testers --> David Lensch (avacado), Ben van den Bos
+Developer, sound designer, composer, graphic designer, game designer --> frazy
+Idea makers --> frazy, avacado
+Play testers --> avacado, Benana 
 
 Losing is learning.]]
 }

@@ -30,6 +30,7 @@ function StartWheel(conditionsMet)
     Spinner.radiusPop.current = 1
     Spinner.shake = 0
     Spinner.running = true
+    Spinner.windowDegreeWidth = DepartmentData[CurrentDepartment].windowDegreeWidth
 
     zutil.playsfx(SFX.wheelStart, .4, 1)
 
