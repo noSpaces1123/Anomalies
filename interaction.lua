@@ -1,7 +1,7 @@
 SquareSelected = { x = nil, y = nil } -- the square the mouse is hovering over
 
 function UpdateSelectedSquare()
-    if Spinner.running or Screen.running or Road.running then return end
+    if Spinner.running or Screen.running or Road.running or Barcode.running then return end
 
     local mx, my = love.mouse.getPosition()
 
@@ -60,7 +60,7 @@ function love.mousepressed(mx, my, button)
     if EndOfContent.showing then return end
     if GridGlobalData.generationAnimation.running or GameState == "menu" then goto skipInteraction end
 
-    if not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not RNEPractice.wait.running then
+    if not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not Barcode.running and not RNEPractice.wait.running then
         if button == 1 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
             UpdateSelectedSquare()
 
@@ -68,11 +68,13 @@ function love.mousepressed(mx, my, button)
 
             if isAnomaly then
                 local choices = {}
-                if UseSpinners then table.insert(choices, "Wheel") end
-                if UseScreens then table.insert(choices, "Screen") end
-                if UseRoads then table.insert(choices, "Road") end
+                local deptData = DepartmentData[CurrentDepartment]
+                if UseSpinners and deptData.rnes.spinners then table.insert(choices, "Wheel") end
+                if UseScreens and deptData.rnes.screens then table.insert(choices, "Screen") end
+                if UseRoads and deptData.rnes.roads then table.insert(choices, "Road") end
+                if UseBarcodes and deptData.rnes.barcodes then table.insert(choices, "Barcode") end
 
-                if zutil.weightedbool(100/6) and #choices > 0 then
+                if (zutil.weightedbool(deptData.rnePercentChance)) and #choices > 0 then
                     _G["Start" .. zutil.randomchoice(choices)](conditionsMet)
                 else
                     PopSquare(SquareSelected.x, SquareSelected.y, conditionsMet)
@@ -177,6 +179,8 @@ function love.mousepressed(mx, my, button)
             RNEPractice.running = false
             RNEQueue.doing = false
         end
+    elseif Barcode.running and button == 1 then
+        CheckClickOnBarcode(mx, my)
     end
 
     ::skipInteraction::

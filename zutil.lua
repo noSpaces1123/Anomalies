@@ -181,7 +181,7 @@ function zutil.playsfx(sfx, volume, pitch)
     local isPlaying = sfx:isPlaying()
     sfx:stop()
     sfx:setVolume((volume and volume or 1))
-    sfx:setPitch((pitch and pitch or 1))
+    sfx:setPitch((pitch and pitch or 1) * TimeMultiplier)
     sfx:play()
     return isPlaying
 end

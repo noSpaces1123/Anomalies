@@ -116,12 +116,6 @@ AllConditions = {
         },
         {
             parts = {
-                { offset = { y = 0, x = -1 }, type = 0 },
-            },
-            isNot = true,
-        },
-        {
-            parts = {
                 { offset = { y = 1, x = 0 }, type = 0 },
             },
             isNot = true,

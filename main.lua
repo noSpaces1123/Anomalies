@@ -29,6 +29,8 @@ function LoadModules()
     require "info"
     require "rne"
     require "animations"
+    require "barcode"
+    require "nmeds"
 end
 
 LoadModules()
@@ -69,6 +71,7 @@ function love.load()
         normal = love.graphics.newImage("assets/sprites/cursor/normal.png", {dpiscale=3}),
         clicked = love.graphics.newImage("assets/sprites/cursor/clicked.png", {dpiscale=3}),
         disallowed = love.graphics.newImage("assets/sprites/cursor/disallowed.png", {dpiscale=3}),
+        barcodeScanner = love.graphics.newImage("assets/sprites/cursor/barcodeScanner.png", {dpiscale=2.5}),
     }
     CursorState = "normal"
 
@@ -107,10 +110,10 @@ function love.load()
     IntroOpeningBars.running = DoIntroAnimation
     TitleFade.running = DoIntroAnimation
 
-    -- FilesCompleted = 30
-    -- ConditionsCollected = 6
-    -- CurrentDepartment = "B"
-    -- WonSpinner = true
+    FilesCompleted = 16
+    ConditionsCollected = 6
+    CurrentDepartment = "X"
+    WonSpinner = true
 
     LoadCards()
 
@@ -141,11 +144,14 @@ function love.load()
 
     love.graphics.setBackgroundColor(Colors[CurrentDepartment].bg)
 
+    TimeMultiplier = 1
+    GlobalUnalteredDT = 0
     GlobalDT = 0
 end
 
 function love.update(dt)
-    GlobalDT = dt * 60
+    GlobalUnalteredDT = dt * 60
+    GlobalDT = GlobalUnalteredDT * TimeMultiplier
 
     if GameState == "game" then
         UpdateSelectedSquare()
@@ -168,6 +174,8 @@ function love.update(dt)
         ReluRating()
         UpdateGridIntroAnimation()
         UpdateTimeSpentOnShift()
+        UpdateNMedsEffectDelay()
+        UpdateNMedsDuration()
     elseif GameState == "menu" then
         if TitleFade.running then
             zutil.updatetimer(TitleFade, function ()
@@ -187,8 +195,10 @@ function love.update(dt)
 
     UpdateIntroOpeningBars()
 
-    for _, self in ipairs(BGParticles) do
-        self:update()
+    if not HasNMeds then
+        for _, self in ipairs(BGParticles) do
+            self:update()
+        end
     end
 
     UpdateCursor()
@@ -246,13 +256,15 @@ function love.draw()
 
 
     DrawCursor()
+
+    DrawNMedsEffectOverlay()
 end
 function DrawGameFrame()
-    love.graphics.origin()
-
     DrawBG()
 
     love.graphics.translate(zutil.jitter(ShakeIntensity), zutil.jitter(ShakeIntensity))
+
+    if NMeds.effectDuration.running then love.graphics.translate(zutil.jitter(1), 0) end
 
     if not DepartmentTransition.running then
         for _, self in ipairs(BGParticles) do
@@ -263,6 +275,8 @@ function DrawGameFrame()
         DrawWheel()
         DrawScreen()
         DrawRoad()
+        DrawBarcode()
+        DrawNMeds()
         DrawGameDisplays()
         DrawParticles()
         DrawCards()
@@ -277,6 +291,8 @@ function DrawGameFrame()
         DrawHandbook()
         DrawButtons()
     end
+
+    love.graphics.origin()
 
     DrawEndOfContentScreen()
 end
@@ -310,6 +326,8 @@ function DrawGameDisplays()
 end
 
 function SpawnBGParticle()
+    if HasNMeds then return end
+
     local x, y = math.random(0, WINDOW.WIDTH), math.random(0, WINDOW.HEIGHT)
 
     local color = {Colors[CurrentDepartment].bgParticles[1],Colors[CurrentDepartment].bgParticles[2],Colors[CurrentDepartment].bgParticles[3]}
@@ -350,7 +368,7 @@ MusicPlaying.audio:setVolume(.2)
     MusicPlaying.audio:play()
 end
 function UpdateMusic()
-    if DepartmentTransition.running or MusicSetting ~= 1 then return end
+    if DepartmentTransition.running or MusicSetting ~= 1 or HasNMeds then return end
 
 ---@diagnostic disable-next-line: undefined-field
     if not MusicPlaying.audio:isPlaying() then
@@ -366,6 +384,9 @@ function UpdateMusic()
         else
             StartMusic(MusicPlaying)
         end
+    elseif MusicPlaying.audio then
+---@diagnostic disable-next-line: undefined-field
+        MusicPlaying.audio:setPitch(TimeMultiplier)
     end
 end
 
@@ -390,6 +411,8 @@ function UpdateCursor()
         CursorState = "disallowed"
     elseif GridGlobalData.generationAnimation.running then
         CursorState = "disallowed"
+    elseif Barcode.running then
+        CursorState = "barcodeScanner"
     elseif Spinner.running or DepartmentTransition.running then
         CursorState = "invisible"
     elseif love.mouse.isDown(1) or love.mouse.isDown(2) or love.mouse.isDown(3) then

@@ -106,6 +106,11 @@ function InitialiseButtons()
         self.fillColor = Colors[CurrentDepartment].buttonFill
         self.mouseOverFillColor = {Colors[CurrentDepartment].buttonFill[1]*.9,Colors[CurrentDepartment].buttonFill[2]*.9,Colors[CurrentDepartment].buttonFill[3]*.9}
     end
+    local function setProperColors(self)
+        self.textColor = {Colors[CurrentDepartment].text[1],Colors[CurrentDepartment].text[2],Colors[CurrentDepartment].text[3]}
+        self.mouseOverFillColor = {Colors[CurrentDepartment].text[1],Colors[CurrentDepartment].text[2],Colors[CurrentDepartment].text[3], .2}
+        return self
+    end
 
     local spacing, width, height = 10, 130, 40
     NewButton("", spacing + 20, WINDOW.HEIGHT - height - spacing, width, height, "left", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.normal, 1, 5, 5, function ()
@@ -149,6 +154,14 @@ function InitialiseButtons()
         return GameState == "game" and not RNEPractice.wait.running and UnlockedRNEQueue and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
     end)
 
+    NewButton("Consume", NMeds.x, NMeds.y + NMeds.sprite:getHeight() + 10, NMeds.sprite:getWidth(), 20, "center", {0,0,0}, {1,1,1,0}, {0,0,0}, {0,0,0}, Fonts.smallBold, 0, 5, 5, function (self)
+        TakeNMeds()
+    end, function (self)
+        setProperColors(self)
+    end, function ()
+        return GameState == "game" and HasNMeds and not RNEPractice.wait.running and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
+    end)
+
     -- main menu
 
     local yAnchor = WINDOW.CENTER_Y + 100
@@ -182,11 +195,6 @@ function InitialiseButtons()
     -- options
     local red, green = {.6,0,0}, {0,.5,0}
     local widthIncrease = 20
-    local function setProperColors(self)
-        self.textColor = {Colors[CurrentDepartment].text[1],Colors[CurrentDepartment].text[2],Colors[CurrentDepartment].text[3]}
-        self.mouseOverFillColor = {Colors[CurrentDepartment].text[1],Colors[CurrentDepartment].text[2],Colors[CurrentDepartment].text[3], .2}
-        return self
-    end
     yAnchor = 10 + widthIncrease
     height = 20
     width = 400

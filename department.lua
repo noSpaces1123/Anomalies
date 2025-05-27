@@ -52,6 +52,8 @@ Colors = {
         roadOutline = {167/255, 190/255, 211/255},
         roadPlayer = {212/255, 213/255, 124/255},
         buttonFill = {167/255, 190/255, 211/255},
+        barcodeOutline = {167/255, 190/255, 211/255},
+        barcodeHoveringOutline = {129/255, 173/255, 200/255},
         titleColors = { {167/255, 190/255, 211/255}, {104/255, 139/255, 88/255}, {166/255, 52/255, 70/255} }
     },
 }
@@ -62,6 +64,8 @@ DepartmentData = {
         shutterSpeed = 2,
         screenDotAlphaDecreaseSpeed = .02,
         pointerAcceleration = .04, windowDegreeWidth = 25,
+        rnePercentChance = 17,
+        rnes = { spinners = true, screens = true, roads = false, barcodes = false },
         findGridWidthAndHeight = function ()
             GridGlobalData.width = math.floor(FilesCompleted / 3) + 5
             GridGlobalData.height = GridGlobalData.width
@@ -73,6 +77,8 @@ DepartmentData = {
         shutterSpeed = 4,
         screenDotAlphaDecreaseSpeed = .04,
         pointerAcceleration = .07, windowDegreeWidth = 25,
+        rnePercentChance = 20,
+        rnes = { spinners = true, screens = true, roads = true, barcodes = false },
         findGridWidthAndHeight = function ()
             local find = function ()
                 return zutil.clamp(math.floor(FilesCompleted / 3) + 9 + math.random(-3, 4), 4, math.huge)
@@ -89,6 +95,8 @@ DepartmentData = {
         screenDotAlphaDecreaseSpeed = .05,
         pointerAcceleration = .07, windowDegreeWidth = 18,
         trailSpawnInterval = 3*60,
+        rnePercentChance = 26,
+        rnes = { spinners = true, screens = false, roads = false, barcodes = true },
         findGridWidthAndHeight = function ()
             local find = function ()
                 return zutil.clamp(math.floor(FilesCompleted / 3) + 12 + math.random(-2, 2), 4, math.huge)

@@ -340,11 +340,37 @@ Dialogue = {
             end
         },
         {
-            text = "Hey. I would bring these last cards to you one by one, but I'm busy. Take the last ones.", person = "yoke",
+            text = "Hey. Here's your last card. Enjoy. Bye.", person = "yoke",
             when = function ()
                 local cond = CurrentDepartment == "X" and FilesCompleted == 9
-                if cond then ConditionsCollected = 7 end
+                if cond then ConditionsCollected = 5 end
                 return cond
+            end
+        },
+        {
+            text = "It's quite clear that, in this department, the anomalies are much harder to find... because they're so specific.", person = "atrium",
+            when = function ()
+                return CurrentDepartment == "X" and FilesCompleted == 12
+            end
+        },
+        {
+            text = "Do you ever wonder what we're actually doing this for? W- what data are we cleansing?", person = "atrium",
+            when = function ()
+                return CurrentDepartment == "X" and FilesCompleted == 13
+            end
+        },
+        {
+            text = "T- try these. They're called N-Meds. I got them from one of the other employees here. They told me the N-Meds will... help you be more content with the work.", person = "atrium",
+            when = function ()
+                local cond = CurrentDepartment == "X" and FilesCompleted == 16
+                if cond then GainNMeds() end
+                return cond
+            end
+        },
+        {
+            text = "A- are you okay?", person = "atrium",
+            when = function ()
+                return CurrentDepartment == "X" and FilesCompleted == 16 and NMeds.effectDuration.running
             end
         },
     },
