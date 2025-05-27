@@ -2,14 +2,22 @@ zutil = require "zutil"
 lume = require "lume"
 anim8 = require "anim8"
 
-love.window.setFullscreen(love.system.getOS() == "OS X")
+
+love.window.setFullscreen(true)
 
 WINDOW = {
+    DEFAULT_WIDTH = 1440, DEFAULT_HEIGHT = 900,
     WIDTH = love.graphics.getWidth(),
     HEIGHT = love.graphics.getHeight(),
 }
-WINDOW.CENTER_X = WINDOW.WIDTH / 2
-WINDOW.CENTER_Y = WINDOW.HEIGHT / 2
+WINDOW.CENTER_X = WINDOW.DEFAULT_WIDTH / 2
+WINDOW.CENTER_Y = WINDOW.DEFAULT_HEIGHT / 2
+WINDOW.SCALEFACTOR = (WINDOW.HEIGHT / WINDOW.DEFAULT_HEIGHT)
+WINDOW.WIDTH, WINDOW.HEIGHT = WINDOW.DEFAULT_WIDTH, WINDOW.DEFAULT_HEIGHT
+
+
+
+love.graphics.setDefaultFilter("nearest", "nearest")
 
 function LoadModules()
     require "grid"
@@ -202,9 +210,28 @@ function love.update(dt)
     end
 
     UpdateCursor()
+    ConfineMouse()
 end
 
 function love.draw()
+    local offsetX, offsetY = (love.graphics.getWidth() - WINDOW.WIDTH * WINDOW.SCALEFACTOR) / 2, (love.graphics.getHeight() - WINDOW.HEIGHT * WINDOW.SCALEFACTOR) / 2
+    love.graphics.translate(offsetX, offsetY)
+
+    love.graphics.translate(zutil.jitter(ShakeIntensity), zutil.jitter(ShakeIntensity))
+    love.graphics.scale(WINDOW.SCALEFACTOR, WINDOW.SCALEFACTOR)
+
+    love.graphics.push()
+
+    if NMeds.effectDuration.running then
+        local function find()
+            return zutil.jitter(CalculateNMedsEffectIntensity())^5 * 2
+        end
+
+        love.graphics.translate(find(), find())
+    end
+
+
+
     if GameState == "game" then
         if DepartmentTransition.running then
             love.graphics.setBackgroundColor(0,0,0)
@@ -257,14 +284,20 @@ function love.draw()
 
     DrawCursor()
 
+    love.graphics.pop()
+
     DrawNMedsEffectOverlay()
+
+    love.graphics.origin()
+
+    love.graphics.setColor(0,0,0)
+    love.graphics.rectangle("fill", 0, 0, offsetX, love.graphics.getHeight())
+    love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), offsetY)
+    love.graphics.rectangle("fill", offsetX + WINDOW.WIDTH * WINDOW.SCALEFACTOR, 0, offsetX, love.graphics.getHeight())
+    love.graphics.rectangle("fill", 0, offsetY + WINDOW.HEIGHT * WINDOW.SCALEFACTOR, love.graphics.getWidth(), offsetY)
 end
 function DrawGameFrame()
     DrawBG()
-
-    love.graphics.translate(zutil.jitter(ShakeIntensity), zutil.jitter(ShakeIntensity))
-
-    if NMeds.effectDuration.running then love.graphics.translate(zutil.jitter(1), 0) end
 
     if not DepartmentTransition.running then
         for _, self in ipairs(BGParticles) do
@@ -291,8 +324,6 @@ function DrawGameFrame()
         DrawHandbook()
         DrawButtons()
     end
-
-    love.graphics.origin()
 
     DrawEndOfContentScreen()
 end
@@ -462,6 +493,7 @@ end
 function DisplayTimeSpentOnShift()
     if not StartedShift then return end
     love.graphics.setFont(Fonts.smallBold)
+    love.graphics.setColor(Colors[CurrentDepartment].text)
     love.graphics.printf(TimeInSecondsToStupidHumanFormat(TimeSpentOnShift) .. " spent on shift", 0, WINDOW.HEIGHT - Fonts.smallBold:getHeight() - 10, WINDOW.WIDTH, "center")
 end
 function TimeInSecondsToStupidHumanFormat(time)
@@ -495,4 +527,11 @@ function SetTitleColor()
 
         return color[1], color[2], color[3], color[4]
     end
+end
+
+function ConfineMouse()
+    local mx, my = love.mouse.getPosition()
+    if mx > WINDOW.WIDTH then love.mouse.setPosition(WINDOW.WIDTH, my) end
+    mx, my = love.mouse.getPosition()
+    if my > WINDOW.HEIGHT then love.mouse.setPosition(mx, WINDOW.HEIGHT) end
 end

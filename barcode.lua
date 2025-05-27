@@ -2,7 +2,7 @@ Barcode = {
     running = false,
     conditionsMetWhenStarted = 0,
 
-    patterns = {}, numberOfPatterns = 5, patternLength = 100,
+    patterns = {}, numberOfPatterns = 5, patternLength = 60,
     targetPattern = "",
 
     patternWidth = 400, patternHeight = 30, patternSpacing = 30,

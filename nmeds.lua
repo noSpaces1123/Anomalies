@@ -5,7 +5,7 @@ NMeds = {
     x = 200, y = WINDOW.CENTER_Y + 160,
     effectDelay = { current = 0, max = 3*60, running = false },
     effectDuration = { current = 0, max = 25*60, running = false },
-    heartbeatTimer = { current = 0, max = 1.5*60 },
+    heartbeatTimer = { current = 0, max = 3*60 },
     overlayIntensity = { current = 0, max = 1, running = false },
 }
 HasNMeds = false
@@ -33,12 +33,6 @@ function DrawNMeds()
 
     love.graphics.setColor(1,1,1)
     love.graphics.draw(NMeds.sprite, NMeds.x, NMeds.y)
-
-    local amp = 5
-    for _ = 1, 2 do
-        love.graphics.setColor(1,1,1, math.random()/2.5+.2)
-        love.graphics.draw(NMeds.sprite, NMeds.x + zutil.jitter(amp), NMeds.y + zutil.jitter(amp))
-    end
 end
 
 function UpdateNMedsEffectDelay()
