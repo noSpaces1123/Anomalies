@@ -1,4 +1,8 @@
+---@diagnostic disable: undefined-field
+
 SaveFileDirectory = "data.csv"
+
+
 
 function SaveData()
     local data = {
@@ -25,8 +29,13 @@ function SaveData()
         MusicSetting = MusicSetting,
         TimeSpentOnShift = TimeSpentOnShift,
         UnlockedRNEQueue = UnlockedRNEQueue,
+        InFullscreen = InFullscreen,
+        HasNMeds = HasNMeds,
+        PreciseDisplayScaling = PreciseDisplayScaling,
+        ReduceScreenshake = ReduceScreenshake,
         other = {
             dialogueCharIntervalDefaultMax = Dialogue.playing.charInterval.defaultMax,
+            nMedsEffectDuration = NMeds.effectDuration,
         },
     }
 
@@ -47,8 +56,32 @@ function LoadData()
     end
 
     if data.other then
-        Dialogue.playing.charInterval.defaultMax = zutil.nilcheck(data.other.dialogueCharIntervalDefaultMax, data.other.dialogueCharIntervalDefaultMax, Dialogue.playing.charInterval.defaultMax)
+        Dialogue.playing.charInterval.defaultMax = zutil.nilcheck(data.other.dialogueCharIntervalDefaultMax, Dialogue.playing.charInterval.defaultMax)
+        NMeds.effectDuration = zutil.nilcheck(data.other.nMedsEffectDuration, NMeds.effectDuration)
     end
 
     CalculateGridSize()
+end
+
+function ResetSaveData()
+    assert(love.filesystem.remove(SaveFileDirectory), "Save data could not be removed. (1)")
+    assert(not love.filesystem.getInfo(SaveFileDirectory), "Save data could not be removed. (2)")
+
+
+    FilesCompleted = 0
+    CurrentDepartment = "A"
+    HasNMeds = false
+    MusicPlaying.audio:stop()
+    ConditionsCollected = 2
+    InitialiseButtons()
+    ResetRNEs()
+    InitialiseRewardsCollected()
+    LoadMusic()
+    InitialiseDialogue()
+
+    love.load()
+    LoadData()
+
+
+    SaveData()
 end

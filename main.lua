@@ -15,9 +15,11 @@ WINDOW.CENTER_Y = WINDOW.DEFAULT_HEIGHT / 2
 WINDOW.SCALEFACTOR = (WINDOW.HEIGHT / WINDOW.DEFAULT_HEIGHT)
 WINDOW.WIDTH, WINDOW.HEIGHT = WINDOW.DEFAULT_WIDTH, WINDOW.DEFAULT_HEIGHT
 
+love.window.setMode(WINDOW.DEFAULT_WIDTH, WINDOW.DEFAULT_HEIGHT, {highdpi=true})
 
 
-love.graphics.setDefaultFilter("nearest", "nearest")
+
+-- love.graphics.setDefaultFilter("nearest", "nearest")
 
 function LoadModules()
     require "grid"
@@ -100,9 +102,14 @@ function love.load()
 
     ImmediatelyStartShift = false
     Jumpscares = true
+    InFullscreen = true
+    PreciseDisplayScaling = true
+    ReduceScreenshake = false
 
     StartedShift = false
     TimeSpentOnShift = 0
+
+    FocusedOnWindow = true
 
 
 
@@ -118,9 +125,11 @@ function love.load()
     IntroOpeningBars.running = DoIntroAnimation
     TitleFade.running = DoIntroAnimation
 
-    FilesCompleted = 16
-    ConditionsCollected = 6
-    CurrentDepartment = "X"
+    love.window.setFullscreen(InFullscreen)
+
+    FilesCompleted = 0
+    ConditionsCollected = 2
+    CurrentDepartment = "C"
     WonSpinner = true
 
     LoadCards()
@@ -161,6 +170,8 @@ function love.update(dt)
     GlobalUnalteredDT = dt * 60
     GlobalDT = GlobalUnalteredDT * TimeMultiplier
 
+    if InFullscreen then WINDOW.SCALEFACTOR = (PreciseDisplayScaling and math.floor or function (x) return x end)(WINDOW.HEIGHT / WINDOW.DEFAULT_HEIGHT) end
+
     if GameState == "game" then
         UpdateSelectedSquare()
         UpdateFileGenerationAnimation()
@@ -184,6 +195,7 @@ function love.update(dt)
         UpdateTimeSpentOnShift()
         UpdateNMedsEffectDelay()
         UpdateNMedsDuration()
+        UpdateBarcodeConclusionDelay()
     elseif GameState == "menu" then
         if TitleFade.running then
             zutil.updatetimer(TitleFade, function ()
@@ -217,8 +229,10 @@ function love.draw()
     local offsetX, offsetY = (love.graphics.getWidth() - WINDOW.WIDTH * WINDOW.SCALEFACTOR) / 2, (love.graphics.getHeight() - WINDOW.HEIGHT * WINDOW.SCALEFACTOR) / 2
     love.graphics.translate(offsetX, offsetY)
 
-    love.graphics.translate(zutil.jitter(ShakeIntensity), zutil.jitter(ShakeIntensity))
-    love.graphics.scale(WINDOW.SCALEFACTOR, WINDOW.SCALEFACTOR)
+    local shake = ShakeIntensity / (ReduceScreenshake and 2 or 1)
+    love.graphics.translate(zutil.jitter(shake), zutil.jitter(shake))
+
+    if InFullscreen then love.graphics.scale(WINDOW.SCALEFACTOR, WINDOW.SCALEFACTOR) end
 
     love.graphics.push()
 
@@ -322,14 +336,23 @@ function DrawGameFrame()
 
     if not DepartmentTransition.running then
         DrawHandbook()
-        DrawButtons()
     end
+
+    DrawButtons()
 
     DrawEndOfContentScreen()
 end
 
 function love.quit()
     SaveData()
+end
+
+function love.focus(focused)
+    FocusedOnWindow = focused
+
+    if not focused and GameState == "game" then
+        StartDialogue("list", "notFocusedOnWindow")
+    end
 end
 
 
@@ -399,7 +422,7 @@ MusicPlaying.audio:setVolume(.2)
     MusicPlaying.audio:play()
 end
 function UpdateMusic()
-    if DepartmentTransition.running or MusicSetting ~= 1 or HasNMeds then return end
+    if DepartmentTransition.running or MusicSetting ~= 1 or HasNMeds or Barcode.conclusionDelay.running then return end
 
 ---@diagnostic disable-next-line: undefined-field
     if not MusicPlaying.audio:isPlaying() then
@@ -443,8 +466,8 @@ function UpdateCursor()
     elseif GridGlobalData.generationAnimation.running then
         CursorState = "disallowed"
     elseif Barcode.running then
-        CursorState = "barcodeScanner"
-    elseif Spinner.running or DepartmentTransition.running then
+        CursorState = (Barcode.conclusionDelay.running and "disallowed" or "barcodeScanner")
+    elseif Spinner.running or (DepartmentTransition.running and #DepartmentTree[CurrentDepartment] == 1) then
         CursorState = "invisible"
     elseif love.mouse.isDown(1) or love.mouse.isDown(2) or love.mouse.isDown(3) then
         CursorState = "clicked"

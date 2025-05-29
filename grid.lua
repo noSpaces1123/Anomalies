@@ -73,7 +73,7 @@ function DrawGrid()
     if Spinner.running or Screen.running or Road.running or Barcode.running or RNEPractice.wait.running then return end
 
     local anchorX, anchorY = GetGridAnchorCoords()
-    local spacing = 10
+    local spacing = SquareGlobalData.width/3
     love.graphics.setColor(Colors[CurrentDepartment].fileBg)
     love.graphics.rectangle("fill", anchorX - spacing, anchorY - spacing, #Grid[1] * SquareGlobalData.width + spacing * 2, #Grid * SquareGlobalData.height + spacing * 2)
 
@@ -91,7 +91,7 @@ function DrawGrid()
         end
     end
 
-    love.graphics.setColor(1,1,1)
+    love.graphics.setColor(Colors[CurrentDepartment].fileBg)
     love.graphics.setLineWidth(1)
     for rowIndex, row in ipairs(PinGrid) do
         for squareIndex, pinned in ipairs(row) do
@@ -290,7 +290,7 @@ function UpdateTrailUpdateInterval()
     zutil.updatetimer(TrailUpdateInterval, UpdateTrails, 1, GlobalDT)
 end
 function UpdateTrailSpawnInterval()
-    TrailSpawnInterval.max = zutil.nilcheck(DepartmentData[CurrentDepartment].trailSpawnInterval, DepartmentData[CurrentDepartment].trailSpawnInterval, TrailSpawnInterval.max)
+    TrailSpawnInterval.max = zutil.nilcheck(DepartmentData[CurrentDepartment].trailSpawnInterval, TrailSpawnInterval.max)
     zutil.updatetimer(TrailSpawnInterval, NewTrail, 1, GlobalDT)
 end
 

@@ -120,6 +120,40 @@ AllConditions = {
             },
             isNot = true,
         },
+    },
+
+    C = {
+        {
+            parts = {
+                { offset = { y = -1, x = 1 }, type = 2 },
+                { offset = { y = 1, x = -1 }, type = 2 },
+            },
+        },
+        {
+            parts = {
+                { offset = { y = -1, x = 0 }, type = 2 },
+                { offset = { y = 0, x = -1 }, type = 1 },
+            },
+        },
+        {
+            parts = {
+                { offset = { y = -1, x = 0 }, type = 3 },
+                { offset = { y = -1, x = -1 }, type = 0 },
+            },
+        },
+        {
+            parts = {
+                { offset = { y = -1, x = -1 }, type = 1 },
+                { offset = { y = 1, x = -1 }, type = 1 },
+            },
+        },
+        {
+            parts = {
+                { offset = { y = 0, x = -1 }, type = 0 },
+                { offset = { y = 0, x = -1 }, type = 0 },
+            },
+            isNot = true,
+        },
     }
 }
 

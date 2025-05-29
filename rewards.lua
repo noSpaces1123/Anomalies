@@ -25,11 +25,15 @@ Rewards = {
     end },
 }
 
-RewardsCollected = {}
-for _, data in ipairs(Rewards) do
-    RewardsCollected[data.name] = false
-    data.sprite = love.graphics.newImage("assets/sprites/" .. data.name .. ".png", {dpiscale=7})
+function InitialiseRewardsCollected()
+    RewardsCollected = {}
+    for _, data in ipairs(Rewards) do
+        RewardsCollected[data.name] = false
+        data.sprite = love.graphics.newImage("assets/sprites/" .. data.name .. ".png", {dpiscale=7})
+    end
 end
+
+InitialiseRewardsCollected()
 
 
 

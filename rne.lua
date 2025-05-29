@@ -15,6 +15,20 @@ RNEQueueAddInterval = { current = 0, max = 20*60 }
 RNEQueueList = {}
 UnlockedRNEQueue = false
 
+function ResetRNEs()
+    WonSpinner = false
+    UseSpinners = false
+
+    WonScreen = false
+    UseScreens = false
+
+    UseRoads = false
+
+    UseBarcodes = false
+end
+
+ResetRNEs()
+
 
 
 function StartRNEPractice()

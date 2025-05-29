@@ -11,8 +11,6 @@ Road = {
 Road.x = WINDOW.CENTER_X - Road.width / 2
 Road.y = WINDOW.CENTER_Y - Road.height / 2
 
-UseRoads = false
-
 
 
 function StartRoad(conditionsMetWhenStarted)
@@ -21,7 +19,7 @@ function StartRoad(conditionsMetWhenStarted)
     Road.obstacles = {}
     Road.obstacleInterval.current = 0
     Road.obstaclesLeftToSpawn = math.random(10, 17)
-    Road.speed = 10
+    Road.speed = DepartmentData[CurrentDepartment].roadObstacleSpeed
     Road.running = true
 
     Road.conditionsMetWhenStarted = conditionsMetWhenStarted

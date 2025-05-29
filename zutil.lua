@@ -280,8 +280,8 @@ function zutil.clone(t)
 end
 
 --Returns `nilv` if `x` is nil, otherwise returns `v`.
-function zutil.nilcheck(x, v, nilv)
-    return (x and v or nilv)
+function zutil.nilcheck(v, nilv)
+    return (v and v or nilv)
 end
 
 --Returns a table containing all English letters (without diacratics) in lowercase.

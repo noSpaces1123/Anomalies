@@ -16,8 +16,6 @@ Spinner = {
     conditionsMetWhenStarted = 0,
 }
 
-WonSpinner = false
-UseSpinners = false
 
 
 function StartWheel(conditionsMet)

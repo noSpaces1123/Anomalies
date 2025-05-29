@@ -23,8 +23,16 @@ end
 function PopSquare(x, y, conditionsMet)
     local squareX, squareY = GetSquareCoords(x, y)
     for _ = 1, 30 do
-        local rgb = 1-Grid[y][x]/2
-        local color = (Grid[y][x] == 3 and {Colors[CurrentDepartment].type3Square[1],Colors[CurrentDepartment].type3Square[2],Colors[CurrentDepartment].type3Square[3]} or {rgb,rgb,rgb})
+        local color = {0,0,0}
+        if Grid[y][x] == 3 then
+            color = {Colors[CurrentDepartment].type3Square[1],Colors[CurrentDepartment].type3Square[2],Colors[CurrentDepartment].type3Square[3]}
+        elseif Grid[y][x] == 2 then
+            color = {Colors[CurrentDepartment].squares[1],Colors[CurrentDepartment].squares[2],Colors[CurrentDepartment].squares[3]}
+        elseif Grid[y][x] == 1 then
+            for i = 1, 3 do
+                color[i] = (Colors[CurrentDepartment].squares[i] + Colors[CurrentDepartment].fileBg[i]) / 2
+            end
+        end
         table.insert(Particles, NewParticle(squareX+SquareGlobalData.width/2, squareY+SquareGlobalData.height/2, math.random()*8+2, color, math.random(6,15), math.random(360), 0, math.random(20,50), function (self)
             if self.speed > 0 then
                 self.speed = self.speed - 0.3 * GlobalDT
@@ -56,9 +64,9 @@ function PopSquare(x, y, conditionsMet)
 end
 
 function love.mousepressed(mx, my, button)
-    if DepartmentTransition.running then return end
+    if DepartmentTransition.running and #DepartmentTree[CurrentDepartment] == 1 then return end
     if EndOfContent.showing then return end
-    if GridGlobalData.generationAnimation.running or GameState == "menu" then goto skipInteraction end
+    if GridGlobalData.generationAnimation.running or GameState == "menu" or (DepartmentTransition.running and #DepartmentTree[CurrentDepartment] > 1) then goto skipInteraction end
 
     if not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not Barcode.running and not RNEPractice.wait.running then
         if button == 1 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then

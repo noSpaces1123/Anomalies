@@ -8,9 +8,6 @@ Screen = {
 Screen.x = WINDOW.CENTER_X - Screen.width / 2
 Screen.y = WINDOW.CENTER_Y - Screen.height / 2
 
-WonScreen = false
-UseScreens = false
-
 
 
 function StartScreen(conditionsMet)

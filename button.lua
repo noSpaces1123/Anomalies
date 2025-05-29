@@ -69,9 +69,9 @@ function NewButton(text, x, y, width, height, alignMode, lineColor, fillColor, m
         end,
         mouseClick = function (self, key)
             if self.mouseOver and self.enable() and not ClickedWithMouse and not self.grayedOut then
+                zutil.playsfx(SFX.click, .2, 1)
                 self.func(self)
                 ClickedWithMouse = true
-                zutil.playsfx(SFX.click, .2, 1)
             end
         end
     })
@@ -100,6 +100,8 @@ end
 function InitialiseButtons()
     Buttons = {}
 
+    local noRNERunning = not Spinner.running and not Screen.running and not Road.running and not Barcode.running
+
     -- game
 
     local function correctFill (self)
@@ -119,7 +121,7 @@ function InitialiseButtons()
         self.text = (Handbook.showing and "Close" or "Handbook")
         correctFill (self)
     end, function ()
-        return GameState == "game" and not RNEPractice.wait.running and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
+        return GameState == "game" and not DepartmentTransition.running and not RNEPractice.wait.running and noRNERunning and not EndOfContent.showing
     end)
 
     height = 30
@@ -129,7 +131,7 @@ function InitialiseButtons()
     end, function (self)
         correctFill (self)
     end, function ()
-        return GameState == "game" and not RNEPractice.wait.running and not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
+        return GameState == "game" and not DepartmentTransition.running and not RNEPractice.wait.running and not Handbook.showing and noRNERunning and not EndOfContent.showing
     end)
 
     NewButton("Spinner Practice", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 2 - spacing * 2, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function ()
@@ -137,7 +139,7 @@ function InitialiseButtons()
     end, function (self)
         correctFill (self)
     end, function ()
-        return GameState == "game" and not RNEPractice.wait.running and UseSpinners and WonSpinner and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
+        return GameState == "game" and not DepartmentTransition.running and not RNEPractice.wait.running and UseSpinners and WonSpinner and not Handbook.showing and not Info.showing and noRNERunning and not EndOfContent.showing
     end)
 
     local bx, by = WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 3 - spacing * 3
@@ -151,7 +153,7 @@ function InitialiseButtons()
 
         correctFill (self)
     end, function ()
-        return GameState == "game" and not RNEPractice.wait.running and UnlockedRNEQueue and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
+        return GameState == "game" and not DepartmentTransition.running and not RNEPractice.wait.running and UnlockedRNEQueue and not Handbook.showing and not Info.showing and noRNERunning and not EndOfContent.showing
     end)
 
     NewButton("Consume", NMeds.x, NMeds.y + NMeds.sprite:getHeight() + 10, NMeds.sprite:getWidth(), 20, "center", {0,0,0}, {1,1,1,0}, {0,0,0}, {0,0,0}, Fonts.smallBold, 0, 5, 5, function (self)
@@ -159,8 +161,25 @@ function InitialiseButtons()
     end, function (self)
         setProperColors(self)
     end, function ()
-        return GameState == "game" and HasNMeds and not RNEPractice.wait.running and not Handbook.showing and not Info.showing and not Spinner.running and not Screen.running and not Road.running and not EndOfContent.showing
+        return GameState == "game" and HasNMeds and not DepartmentTransition.running and not RNEPractice.wait.running and not Handbook.showing and not Info.showing and noRNERunning and not EndOfContent.showing
     end)
+
+    width, height = 300, 20
+
+    -- department choice buttons
+    for i = 1, 3 do
+        NewButton("Head to ", WINDOW.CENTER_X - width/2, WINDOW.CENTER_Y + (height + spacing) * i, width, height, (i%2==0 and "left" or "right"), {0,0,0}, {1,1,1,0}, {0,0,0}, {0,0,0}, Fonts.smallBold, 0, 5, 5, function (self)
+            DepartmentTransition.departmentChoice = DepartmentTree[CurrentDepartment][i]
+            DepartmentTransition.afterDepartmentChoiceWait.running = true
+            DepartmentTransition.afterDepartmentChoiceWait.current = 0
+            Dialogue.playing.textThusFar = ""
+        end, function (self)
+            setProperColors(self)
+            self.text = "Head to Department " .. DepartmentTree[CurrentDepartment][i]
+        end, function ()
+            return GameState == "game" and DepartmentTransition.running and not DepartmentTransition.afterDepartmentChoiceWait.running and DepartmentTransition.currentPhase >= 2 and DepartmentTree[CurrentDepartment] and #DepartmentTree[CurrentDepartment] >= i and #DepartmentTree[CurrentDepartment] > 1 and not EndOfContent.showing
+        end)
+    end
 
     -- main menu
 
@@ -201,21 +220,17 @@ function InitialiseButtons()
     NewButton("Reset save data", spacing + widthIncrease, yAnchor + (height + spacing) * 0, width, height, "left", {0,0,0}, {1,1,1,0}, {.9,.9,.9}, {0,0,0}, Fonts.small, 0, 5, 5, function (self)
         if not self.confirmation then
             if love.filesystem.getInfo(SaveFileDirectory) then
-                if true then
-                    self.text = "This feature has yet to be implemented properly. Sorry!"
-                else
-                    self.confirmation = 1
-                    self.text = "Shift-click to erase your data. This cannot be undone."
-                    self.mouseOverFillColor = {1,0,0}
-                end
+                self.confirmation = 1
+                self.text = "Shift-click to erase your data. This cannot be undone."
+                self.mouseOverFillColor = {1,0,0}
             else
                 self.text = "No data to erase!"
             end
         elseif self.confirmation == 1 and (love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")) then
-            assert(love.filesystem.remove(SaveFileDirectory))
-            LoadModules()
-            SaveData()
-            love.load()
+            self.confirmation = 2
+            self.text = "Shift-click again to confirm. This CANNOT BE UNDONE."
+        elseif self.confirmation == 2 and (love.keyboard.isDown("lshift") or love.keyboard.isDown("rshift")) then
+            ResetSaveData()
         end
     end, function (self)
         self = setProperColors(self)
@@ -293,6 +308,37 @@ function InitialiseButtons()
         elseif MusicSetting == 0 then self.text = self.text .. "SILENCE" end
         self = setProperColors(self)
         if MusicSetting == 1 then self.textColor = green end
+    end, function ()
+        return GameState == "options"
+    end)
+    NewButton("", spacing + widthIncrease, yAnchor + (height + spacing) * 7, width, height, "left", {0,0,0}, {1,1,1,0}, {.9,.9,.9}, {0,0,0}, Fonts.small, 0, 5, 5, function (self)
+        InFullscreen = not InFullscreen
+        love.window.setFullscreen(InFullscreen)
+        SaveData()
+    end, function (self)
+        self.text = "Fullscreen: " .. (InFullscreen and "ON" or "OFF")
+        self = setProperColors(self)
+        self.textColor = (InFullscreen and green or red)
+    end, function ()
+        return GameState == "options"
+    end)
+    NewButton("", spacing + widthIncrease, yAnchor + (height + spacing) * 8, width, height, "left", {0,0,0}, {1,1,1,0}, {.9,.9,.9}, {0,0,0}, Fonts.small, 0, 5, 5, function (self)
+        PreciseDisplayScaling = not PreciseDisplayScaling
+        SaveData()
+    end, function (self)
+        self.text = "Precise display scaling: " .. (PreciseDisplayScaling and "ON (may affect resolution of text)" or "OFF")
+        self = setProperColors(self)
+        self.textColor = (PreciseDisplayScaling and green or red)
+    end, function ()
+        return GameState == "options"
+    end)
+    NewButton("", spacing + widthIncrease, yAnchor + (height + spacing) * 9, width, height, "left", {0,0,0}, {1,1,1,0}, {.9,.9,.9}, {0,0,0}, Fonts.small, 0, 5, 5, function (self)
+        ReduceScreenshake = not ReduceScreenshake
+        SaveData()
+    end, function (self)
+        self.text = "Reduce screenshake: " .. (ReduceScreenshake and "ON" or "OFF")
+        self = setProperColors(self)
+        self.textColor = (ReduceScreenshake and green or red)
     end, function ()
         return GameState == "options"
     end)
