@@ -5,8 +5,8 @@ Info = {
 
 ---------------- CREDITS ----------------
 
-Developer, sound designer, composer, graphic designer, game designer --> frazy
-Idea makers --> frazy, avacado
+Developer, sound designer, composer, graphic designer, game designer --> frazyfrazy
+Idea makers --> frazyfrazy, avacado
 Play testers --> avacado, Benana 
 
 Losing is learning.]]
@@ -24,10 +24,10 @@ function DrawInfo()
 
     local spacing = 10
     local _, wrapped = font:getWrap(Info.text, Info.width)
-    local textY = WINDOW.HEIGHT - #wrapped * font:getHeight() - Sprites.frazy:getHeight() - spacing * 2
+    local textY = WINDOW.HEIGHT - #wrapped * font:getHeight() - Sprites.frazyfrazy:getHeight() - spacing * 2
 
     love.graphics.printf(Info.text, spacing, textY, Info.width, "left")
 
     love.graphics.setColor(Colors[CurrentDepartment].text)
-    love.graphics.draw(Sprites.frazy, spacing, WINDOW.HEIGHT - Sprites.frazy:getHeight() - spacing)
+    love.graphics.draw(Sprites.frazyfrazy, spacing, WINDOW.HEIGHT - Sprites.frazyfrazy:getHeight() - spacing)
 end

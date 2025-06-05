@@ -15,6 +15,7 @@ function InitialiseDialogue()
             ["noir"] = {221/255, 45/255, 74/255},
             ["atrium"] = {0, 201/255, 128/255},
             ["yoke"] = {211/255, 213/255, 124/255},
+            ["vim"] = {145/255, 1, 61/255},
         },
         list = {
             firstEverGreeting = {
@@ -394,10 +395,18 @@ function InitialiseDialogue()
             },
 
             {
-                text = "Hello. I'm Mr Noir. Here are a couple cards to start with.", person = "noir",
+                text = "Hello. I'm Mr Noir. Here are a couple cards to start with. When you hear a buzzer and the music stops, move your mouse off the grid so a photo of the grid can be taken.", person = "noir",
                 when = function ()
                     local cond = CurrentDepartment == "C" and FilesCompleted == 0
                     if cond then ConditionsCollected = 2 end
+                    return cond
+                end
+            },
+            {
+                text = "Expect to receive the buzzer and for photos of your file to be taken from no on.", person = "noir",
+                when = function ()
+                    local cond = CurrentDepartment == "C" and FilesCompleted == 1
+                    if cond then UseCameraShots = true end
                     return cond
                 end
             },
@@ -434,6 +443,45 @@ function InitialiseDialogue()
                 when = function ()
                     local cond = CurrentDepartment == "C" and FilesCompleted == 18
                     if cond then ConditionsCollected = 5 end
+                    return cond
+                end
+            },
+            {
+                text = "Listen closely. After this department, you'll be able to choose to Department D or R. I dislike being in the dark as much as you do, so I'm inviting you to the Anti-Moriel Rebellion Group. Pick Department R to join us.", person = "noir",
+                when = function ()
+                    return CurrentDepartment == "C" and FilesCompleted == 22
+                end
+            },
+            {
+                text = "If you join with us, we'll all help each other get answers as to why we're all here, what we're doing by cleansing grids of squares, and what we can do to get back home and see our families- if we even have families, that is.", person = "noir",
+                when = function ()
+                    return CurrentDepartment == "C" and FilesCompleted == 23
+                end
+            },
+            {
+                text = "I know that you want to learn why you're here and what you can do to get away. I know you want answers. Join with us, please.", person = "noir",
+                when = function ()
+                    return CurrentDepartment == "C" and FilesCompleted == 24
+                end
+            },
+            {
+                text = "The decision is yours. But if you choose to continue working and not ask questions, you're just as weak as the all other slaves here. Be wise, I urge you.", person = "noir",
+                when = function ()
+                    return CurrentDepartment == "C" and FilesCompleted == 25
+                end
+            },
+            {
+                text = "I hope you make the right decision. Remember, choose R to join us or choose D to surrender your mind to Moriel once more.", person = "noir",
+                when = function ()
+                    return CurrentDepartment == "C" and FilesCompleted == 30 and ClearGoal <= 5
+                end
+            },
+
+            {
+                text = "My name is Vim. Welcome to Cleansing Department D. I sincerely hope you settle comfortably.", person = "vim",
+                when = function ()
+                    local cond = CurrentDepartment == "D" and FilesCompleted == 0
+                    if cond then ConditionsCollected = 2 end
                     return cond
                 end
             },
@@ -513,7 +561,7 @@ function StartDialogue(type, category_OR_eventualIndex, animation)
 end
 
 function DrawDialogue()
-    if RNEPractice.wait.running or GridGlobalData.generationAnimation.running or Spinner.running or Road.running or Screen.running then return end
+    if GridGlobalData.generationAnimation.running or not NoRNERunning() then return end
 
     local y = GetDialogueY()
 

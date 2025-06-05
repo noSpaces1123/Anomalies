@@ -100,8 +100,6 @@ end
 function InitialiseButtons()
     Buttons = {}
 
-    local noRNERunning = not Spinner.running and not Screen.running and not Road.running and not Barcode.running
-
     -- game
 
     local function correctFill (self)
@@ -121,7 +119,7 @@ function InitialiseButtons()
         self.text = (Handbook.showing and "Close" or "Handbook")
         correctFill (self)
     end, function ()
-        return GameState == "game" and not DepartmentTransition.running and not RNEPractice.wait.running and noRNERunning and not EndOfContent.showing
+        return GameState == "game" and not DepartmentTransition.running and NoRNERunning() and not EndOfContent.showing
     end)
 
     height = 30
@@ -131,7 +129,7 @@ function InitialiseButtons()
     end, function (self)
         correctFill (self)
     end, function ()
-        return GameState == "game" and not DepartmentTransition.running and not RNEPractice.wait.running and not Handbook.showing and noRNERunning and not EndOfContent.showing
+        return GameState == "game" and not DepartmentTransition.running and not Handbook.showing and NoRNERunning() and not EndOfContent.showing
     end)
 
     NewButton("Spinner Practice", WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 2 - spacing * 2, width, height, "right", {0,0,0}, {1,1,1}, {.9,.9,.9}, {0,0,0}, Fonts.small, 1, 5, 5, function ()
@@ -139,7 +137,7 @@ function InitialiseButtons()
     end, function (self)
         correctFill (self)
     end, function ()
-        return GameState == "game" and not DepartmentTransition.running and not RNEPractice.wait.running and UseSpinners and WonSpinner and not Handbook.showing and not Info.showing and noRNERunning and not EndOfContent.showing
+        return GameState == "game" and not DepartmentTransition.running and DepartmentData[CurrentDepartment].rnes.spinners and UseSpinners and WonSpinner and not Handbook.showing and not Info.showing and NoRNERunning() and not EndOfContent.showing
     end)
 
     local bx, by = WINDOW.WIDTH - spacing - 20 - width, WINDOW.HEIGHT - height * 3 - spacing * 3
@@ -153,7 +151,7 @@ function InitialiseButtons()
 
         correctFill (self)
     end, function ()
-        return GameState == "game" and not DepartmentTransition.running and not RNEPractice.wait.running and UnlockedRNEQueue and not Handbook.showing and not Info.showing and noRNERunning and not EndOfContent.showing
+        return GameState == "game" and not DepartmentTransition.running and UnlockedRNEQueue and not Handbook.showing and not Info.showing and NoRNERunning() and not EndOfContent.showing
     end)
 
     NewButton("Consume", NMeds.x, NMeds.y + NMeds.sprite:getHeight() + 10, NMeds.sprite:getWidth(), 20, "center", {0,0,0}, {1,1,1,0}, {0,0,0}, {0,0,0}, Fonts.smallBold, 0, 5, 5, function (self)
@@ -161,7 +159,7 @@ function InitialiseButtons()
     end, function (self)
         setProperColors(self)
     end, function ()
-        return GameState == "game" and HasNMeds and not DepartmentTransition.running and not RNEPractice.wait.running and not Handbook.showing and not Info.showing and noRNERunning and not EndOfContent.showing
+        return GameState == "game" and HasNMeds and not DepartmentTransition.running and not Handbook.showing and not Info.showing and NoRNERunning() and not EndOfContent.showing
     end)
 
     width, height = 300, 20

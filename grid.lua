@@ -53,6 +53,7 @@ function UpdateFileGenerationAnimation()
 
     GridGlobalData.generationAnimation = zutil.updatetimer(GridGlobalData.generationAnimation, function ()
         GridGlobalData.generationAnimation.running = false
+        if DepartmentData[CurrentDepartment].applyAfterGridGeneration then DepartmentData[CurrentDepartment].applyAfterGridGeneration() end
         PlaceAnomalies()
         SaveData()
     end, 1, GlobalDT)
@@ -74,8 +75,9 @@ function DrawGrid()
 
     local anchorX, anchorY = GetGridAnchorCoords()
     local spacing = SquareGlobalData.width/3
+    local totalFileWidth, totalFileHeight = #Grid[1] * SquareGlobalData.width + spacing * 2, #Grid * SquareGlobalData.height + spacing * 2
     love.graphics.setColor(Colors[CurrentDepartment].fileBg)
-    love.graphics.rectangle("fill", anchorX - spacing, anchorY - spacing, #Grid[1] * SquareGlobalData.width + spacing * 2, #Grid * SquareGlobalData.height + spacing * 2)
+    love.graphics.rectangle("fill", anchorX - spacing, anchorY - spacing, totalFileWidth, totalFileHeight)
 
     for rowIndex, row in ipairs(Grid) do
         for squareIndex, square in ipairs(row) do
@@ -107,17 +109,24 @@ function DrawGrid()
 
     love.graphics.setLineWidth(SquareGlobalData.width/6)
     love.graphics.setColor(Colors[CurrentDepartment].fileOutline)
-    love.graphics.rectangle("line", anchorX - spacing, anchorY - spacing, #Grid[1] * SquareGlobalData.width + spacing * 2, #Grid * SquareGlobalData.height + spacing * 2)
+    love.graphics.rectangle("line", anchorX - spacing, anchorY - spacing, totalFileWidth, totalFileHeight)
 
-    if CurrentDepartment ~= "A" then
-        local ratio = TimeUntilCorruption.current / TimeUntilCorruption.max
-        local easing = zutil.easing.easeInExpo
-        local width = (#Grid[1] * SquareGlobalData.width + spacing * 2) * easing(ratio)
-        local height = 20
+    -- -- camera shot
+    -- if CameraShotOverlay.running then
+    --     love.graphics.setColor(1,1,1, 1 - zutil.easing.easeOutQuint(CameraShotOverlay.current))
+    --     love.graphics.rectangle("fill", anchorX - spacing, anchorY - spacing, totalFileWidth, totalFileHeight)
+    -- end
 
-        love.graphics.setColor(Colors[CurrentDepartment].fileOutline[1],Colors[CurrentDepartment].fileOutline[2],Colors[CurrentDepartment].fileOutline[3], easing(ratio))
-        love.graphics.rectangle("fill", anchorX - spacing, anchorY - spacing  +  #Grid * SquareGlobalData.height + spacing * 3, width, height)
-    end
+    -- timer
+    -- if CurrentDepartment ~= "A" then
+    --     local ratio = TimeUntilCorruption.current / TimeUntilCorruption.max
+    --     local easing = zutil.easing.easeInExpo
+    --     local width = (#Grid[1] * SquareGlobalData.width + spacing * 2) * easing(ratio)
+    --     local height = 20
+
+    --     love.graphics.setColor(Colors[CurrentDepartment].fileOutline[1],Colors[CurrentDepartment].fileOutline[2],Colors[CurrentDepartment].fileOutline[3], easing(ratio))
+    --     love.graphics.rectangle("fill", anchorX - spacing, anchorY - spacing  +  #Grid * SquareGlobalData.height + spacing * 3, width, height)
+    -- end
 end
 
 function GetGridAnchorCoords()

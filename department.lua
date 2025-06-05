@@ -68,14 +68,35 @@ Colors = {
         screenBg = {226, 226, 223},
         screenOutline = {76, 87, 96},
         screenDots = {43, 42, 38},
-        screenGrid = {226*1.2, 226*1.2, 223*1.2},
+        screenGrid = {226*1.1, 226*1.1, 223*1.1},
         roadBg = {165, 158, 140},
-        roadOutline = {215, 206, 178},
-        roadPlayer = {226, 226, 223},
+        roadOutline = {76, 87, 96},
+        roadPlayer = {43, 42, 38},
         buttonFill = {165, 158, 140},
         barcodeOutline = {165, 158, 140},
         barcodeHoveringOutline = {215, 206, 178},
         titleColors = { {215, 206, 178}, {226, 226, 223} },
+    },
+
+    D = {
+        bg = {12, 0, 41},
+        bgParticles = {29, 0, 102},
+        fileBg = {255, 255, 255},
+        fileOutline = {229, 229, 229},
+        text = {211, 194, 255},
+        type3Square = {176, 145, 255},
+        squares = {12, 0, 41},
+        screenBg = {12, 0, 41},
+        screenOutline = {69, 63, 60},
+        screenDots = {176, 145, 255},
+        screenGrid = {11*1.2, 10*1.2, 9*1.2},
+        roadBg = {29, 0, 102},
+        roadOutline = {229, 229, 229},
+        roadPlayer = {176, 145, 255},
+        buttonFill = {211, 194, 255},
+        barcodeOutline = {29, 0, 102},
+        barcodeHoveringOutline = {176, 145, 255},
+        titleColors = { {176, 145, 255}, {255, 255, 255} },
     },
 }
 
@@ -84,6 +105,7 @@ for dept, list in pairs(Colors) do
     for key, value in pairs(list) do
         if key == "titleColors" then
             for i, color in ipairs(value) do
+---@diagnostic disable-next-line: param-type-mismatch
                 for j, component in ipairs(color) do
                     Colors[dept][key][i][j] = component / 255
                 end
@@ -103,6 +125,7 @@ DepartmentData = {
         screenDotAlphaDecreaseSpeed = .02,
         pointerAcceleration = .04, windowDegreeWidth = 25,
         rnePercentChance = 17,
+        trailSpawnInterval = 10*60,
         rnes = { spinners = true, screens = true, roads = false, barcodes = false },
         findGridWidthAndHeight = function ()
             GridGlobalData.width = math.floor(FilesCompleted / 3) + 5
@@ -116,6 +139,7 @@ DepartmentData = {
         screenDotAlphaDecreaseSpeed = .04,
         pointerAcceleration = .07, windowDegreeWidth = 25,
         rnePercentChance = 20,
+        trailSpawnInterval = 10*60,
         rnes = { spinners = true, screens = true, roads = true, barcodes = false },
         findGridWidthAndHeight = function ()
             local find = function ()
@@ -147,11 +171,12 @@ DepartmentData = {
     C = {
         squarePalette = { ["0"] = 3, ["1"] = 5, ["2"] = 2, ["3"] = 1 },
         shutterSpeed = 3,
-        roadObstacleSpeed = 10,
+        roadObstacleSpeed = 13,
         screenDotAlphaDecreaseSpeed = .05,
-        trailSpawnInterval = 6*60,
+        trailSpawnInterval = 20*60,
         rnePercentChance = 30,
         rnes = { spinners = false, screens = true, roads = true, barcodes = false },
+        useCameraShots = true,
         findGridWidthAndHeight = function ()
             local find = function ()
                 return zutil.clamp(math.floor(FilesCompleted / 3) + 7 + math.random(-1, 3), 4, math.huge)
@@ -160,6 +185,50 @@ DepartmentData = {
             GridGlobalData.width = find()
             GridGlobalData.height = find()
         end,
+        applyAfterGridGeneration = function ()
+            for _ = 2, math.random(3,6) do
+                local tx, ty = math.random(#Grid[1]), math.random(#Grid)
+                local target = Grid[ty][tx] -- picks a random square
+                local alongX = zutil.randomchoice({true,false})
+
+                for i = 1, (alongX and #Grid[1] or #Grid) do
+                    local x, y = (alongX and i or tx), (alongX and ty or i)
+                    Grid[y][x] = target
+                end
+            end
+        end
+    },
+
+    D = {
+        squarePalette = { ["0"] = 3, ["1"] = 5, ["2"] = 2, ["3"] = 4 },
+        trailSpawnInterval = 15*60,
+        rnePercentChance = 18,
+        rnes = { spinners = false, screens = false, roads = false, barcodes = true },
+        useCameraShots = true,
+        findGridWidthAndHeight = function ()
+            local biasToWidth = zutil.randomchoice({true,false})
+            local bias, unBias = 12, 7
+
+            GridGlobalData.width = zutil.clamp(math.floor(FilesCompleted / 3) + (biasToWidth and bias or unBias) + math.random(-3, 3), 4, math.huge)
+            GridGlobalData.height = zutil.clamp(math.floor(FilesCompleted / 3) + (not biasToWidth and bias or unBias) + math.random(-3, 3), 4, math.huge)
+        end,
+        applyAfterGridGeneration = function ()
+            for _ = 1, math.random(2,5) do
+                local tx, ty = math.random(#Grid[1]), math.random(#Grid)
+                local target = Grid[ty][tx] -- picks a random square
+
+                for i = 1, 4 do
+                    local cxIncrement = (i % 2 == 0 and 1 or -1)
+                    local cyIncrement = (i % 2 == 1 and 1 or -1)
+
+                    local cx, cy = tx, ty
+                    while Grid[cy] and Grid[cy][cx] do
+                        Grid[cy][cx] = target
+                        cx, cy = cx + cxIncrement, cy + cyIncrement
+                    end
+                end
+            end
+        end
     },
 }
 
@@ -186,12 +255,8 @@ DepartmentTransition = {
 DepartmentTree = {
     A = { "B" },
     B = { "C", "X" },
-    C = { "D", "H" },
-    D = { "L", "M" },
-    H = { "K", "R", "M" },
-    F = { "R", "N" },
-    X = { "F", "W" },
-    W = { "Z", "Y" },
+    C = { "D", "R" },
+    X = { "E", "W" },
 }
 
 

@@ -113,3 +113,7 @@ function PerhapsPlayVoicedAffirmationSFX()
 
     zutil.playsfx(SFX[zutil.randomchoice(options)], .1, 1)
 end
+
+function NoRNERunning()
+    return not (Spinner.running or Screen.running or Road.running or Barcode.running or RNEPractice.wait.running)
+end

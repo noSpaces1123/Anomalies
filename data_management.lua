@@ -33,6 +33,8 @@ function SaveData()
         HasNMeds = HasNMeds,
         PreciseDisplayScaling = PreciseDisplayScaling,
         ReduceScreenshake = ReduceScreenshake,
+        AlarmInterval = AlarmInterval,
+        UseCameraShots = UseCameraShots,
         other = {
             dialogueCharIntervalDefaultMax = Dialogue.playing.charInterval.defaultMax,
             nMedsEffectDuration = NMeds.effectDuration,

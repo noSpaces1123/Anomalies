@@ -22,6 +22,8 @@ function StartRoad(conditionsMetWhenStarted)
     Road.speed = DepartmentData[CurrentDepartment].roadObstacleSpeed
     Road.running = true
 
+    zutil.playsfx(SFX.roadStart, .3, math.random()/10+1.1)
+
     Road.conditionsMetWhenStarted = conditionsMetWhenStarted
 end
 function UpdateRoadObstacleSpawnInterval()

@@ -41,6 +41,7 @@ function LoadModules()
     require "animations"
     require "barcode"
     require "nmeds"
+    require "cameraShot"
 end
 
 LoadModules()
@@ -59,7 +60,7 @@ function love.load()
     Sprites = {
         pin = love.graphics.newImage("assets/sprites/pin.png", {dpiscale=6}),
         title = love.graphics.newImage("assets/sprites/Anomalies title.png", {dpiscale=3}),
-        frazy = love.graphics.newImage("assets/sprites/frazy.png", {dpiscale=8}),
+        frazyfrazy = love.graphics.newImage("assets/sprites/frazyfrazy.png", {dpiscale=10}),
         musicSymbol = love.graphics.newImage("assets/sprites/music symbol.png", {dpiscale=7}),
     }
 
@@ -127,10 +128,12 @@ function love.load()
 
     love.window.setFullscreen(InFullscreen)
 
-    FilesCompleted = 0
-    ConditionsCollected = 2
-    CurrentDepartment = "C"
-    WonSpinner = true
+    -- FilesCompleted = 0
+    -- ConditionsCollected = 6
+    -- CurrentDepartment = "D"
+    -- WonSpinner = true
+    -- UseScreens = true
+    -- UseRoads = true
 
     LoadCards()
 
@@ -196,6 +199,9 @@ function love.update(dt)
         UpdateNMedsEffectDelay()
         UpdateNMedsDuration()
         UpdateBarcodeConclusionDelay()
+        UpdateAlarmInterval()
+        UpdateAlarmDelay()
+        UpdateCameraShotOverlay()
     elseif GameState == "menu" then
         if TitleFade.running then
             zutil.updatetimer(TitleFade, function ()
@@ -301,6 +307,7 @@ function love.draw()
     love.graphics.pop()
 
     DrawNMedsEffectOverlay()
+    DrawCameraShotOverlay()
 
     love.graphics.origin()
 
@@ -422,7 +429,7 @@ MusicPlaying.audio:setVolume(.2)
     MusicPlaying.audio:play()
 end
 function UpdateMusic()
-    if DepartmentTransition.running or MusicSetting ~= 1 or HasNMeds or Barcode.conclusionDelay.running then return end
+    if DepartmentTransition.running or MusicSetting ~= 1 or HasNMeds or Barcode.conclusionDelay.running or AlarmDelay.running then return end
 
 ---@diagnostic disable-next-line: undefined-field
     if not MusicPlaying.audio:isPlaying() then
