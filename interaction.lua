@@ -49,10 +49,10 @@ function PopSquare(x, y, conditionsMet)
 
     TimeUntilCorruption.current = 0
 
-    ClearGoal = ClearGoal - 1
+    if not DoNotDecreaseClearGoal then ClearGoal = ClearGoal - 1 end
 
     if ClearGoal <= 0 then
-        if FilesCompleted < 30 then CompleteFile()
+        if FilesCompleted < (DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted and DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted or 30) then CompleteFile()
         else
             StartDepartmentTransition()
         end
@@ -64,6 +64,44 @@ function PopSquare(x, y, conditionsMet)
 end
 
 function love.mousepressed(mx, my, button)
+    if EndingDialoguePlaying.running and button == 1 then
+        if EndingDialoguePlaying.running then
+            if Dialogue.playing.running then
+                Dialogue.playing.running = false
+                Dialogue.playing.textThusFar = Dialogue.playing.targetText
+            else
+                EndingDialoguePlaying.dialogueIndex = EndingDialoguePlaying.dialogueIndex + 1
+
+                if EndingDialoguePlaying.dialogueIndex > #Endings[EndingDialoguePlaying.endingIndex].dialogue then
+                    EndingDialoguePlaying.running = false
+                    GameState = "ending collected"
+
+                    WakeUpTextAlpha.running = true
+                    EndingDialoguePlaying.imageShowing = false
+
+                    zutil.playsfx(SFX.endingCollected, .4, 1)
+                    MainTheme:play()
+                else
+                    StartEndingDialogue(Endings[EndingDialoguePlaying.endingIndex].dialogue[EndingDialoguePlaying.dialogueIndex])
+
+                    if Endings[EndingDialoguePlaying.endingIndex].dialogue[EndingDialoguePlaying.dialogueIndex].showImage ~= nil then
+                        EndingDialoguePlaying.imageShowing = Endings[EndingDialoguePlaying.endingIndex].dialogue[EndingDialoguePlaying.dialogueIndex].showImage
+                        if EndingDialoguePlaying.imageShowing then EndingDialoguePlaying.imageAlpha.running = true end
+                    end
+                end
+            end
+        end
+
+        goto skipInteraction
+    end
+    if GameState == "ending collected" and button == 1 then
+        GameState = "menu"
+        MainTheme:stop()
+        ResetSaveData()
+
+        goto skipInteraction
+    end
+
     if DepartmentTransition.running and #DepartmentTree[CurrentDepartment] == 1 then return end
     if EndOfContent.showing then return end
     if GridGlobalData.generationAnimation.running or GameState == "menu" or (DepartmentTransition.running and #DepartmentTree[CurrentDepartment] > 1) then goto skipInteraction end

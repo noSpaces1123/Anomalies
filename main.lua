@@ -42,6 +42,7 @@ function LoadModules()
     require "barcode"
     require "nmeds"
     require "cameraShot"
+    require "endings"
 end
 
 LoadModules()
@@ -101,6 +102,12 @@ function love.load()
     MusicPlaying = { name = nil, audio = nil }
     MusicSetting = 1
 
+    MainTheme = love.audio.newSource("assets/music/Sanctuary (Anomalies Main Theme).wav", "stream")
+    MainTheme:setVolume(.3)
+    TenseMusic = love.audio.newSource("assets/music/Fence.wav", "stream")
+    TenseMusic:setVolume(.3)
+    TenseMusic:setLooping(true)
+
     ImmediatelyStartShift = false
     Jumpscares = true
     InFullscreen = true
@@ -111,6 +118,10 @@ function love.load()
     TimeSpentOnShift = 0
 
     FocusedOnWindow = true
+
+    DoNotDecreaseClearGoal = false
+
+    Flash = { current = 0, max = 1, running = false }
 
 
 
@@ -128,18 +139,21 @@ function love.load()
 
     love.window.setFullscreen(InFullscreen)
 
-    -- FilesCompleted = 0
-    -- ConditionsCollected = 6
-    -- CurrentDepartment = "D"
+    -- FilesCompleted = 25
+    -- ConditionsCollected = 5
+    -- CurrentDepartment = "X"
+    -- ClearGoal = 4
     -- WonSpinner = true
     -- UseScreens = true
     -- UseRoads = true
+    -- HasNMeds = false
 
     LoadCards()
 
     LoadMusic()
 
-    if MusicSetting == 1 then
+    if HasNMeds then
+    elseif MusicSetting == 1 then
         StartMusic((StartedShift and zutil.randomchoice(Music) or Music[1]))
     elseif MusicSetting == 2 then
         StartBrownNoise()
@@ -176,6 +190,7 @@ function love.update(dt)
     if InFullscreen then WINDOW.SCALEFACTOR = (PreciseDisplayScaling and math.floor or function (x) return x end)(WINDOW.HEIGHT / WINDOW.DEFAULT_HEIGHT) end
 
     if GameState == "game" then
+        CollectEndings()
         UpdateSelectedSquare()
         UpdateFileGenerationAnimation()
         SearchForDueEventualDialogue()
@@ -188,7 +203,7 @@ function love.update(dt)
         UpdateRoad()
         UpdateRoadObstacleSpawnInterval()
         UpdateDepartmentTransition()
-        UpdateTimeUntilCorruption()
+        ApplyDepartmentEvents()
         UpdateRNEPracticeWait()
         UpdateRNEQueue()
         CheckForEndOfContent()
@@ -218,6 +233,7 @@ function love.update(dt)
     SpawnBGParticle()
     UpdateAnimations()
     UpdateTitleColor()
+    UpdateFlash()
 
     UpdateIntroOpeningBars()
 
@@ -248,6 +264,12 @@ function love.draw()
         end
 
         love.graphics.translate(find(), find())
+    elseif CurrentDepartment == "D" and FilesCompleted + 1 == DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted then
+        local function find()
+            return zutil.jitter(1)^7 * 1.2
+        end
+
+        love.graphics.translate(find(), find())
     end
 
 
@@ -262,6 +284,32 @@ function love.draw()
         end
 
         DrawGameFrame()
+    elseif GameState == "ending" then
+        love.graphics.setBackgroundColor(0,0,0)
+
+        DrawEndingImage()
+        DrawDialogue()
+    elseif GameState == "ending collected" then
+        love.graphics.setBackgroundColor(0,0,0)
+
+        love.graphics.setFont(Fonts.big)
+        love.graphics.setColor(1,1,1)
+        love.graphics.printf(string.upper(EndingDialoguePlaying.collectedEndingName) .. " ENDING", 0, WINDOW.CENTER_Y - Fonts.big:getHeight() / 2, WINDOW.WIDTH, "center")
+
+        love.graphics.setFont(Fonts.normal)
+        love.graphics.printf(#EndingsCollected .. " / " .. #Endings, 0, WINDOW.CENTER_Y + Fonts.big:getHeight() / 2 + 10, WINDOW.WIDTH, "center")
+
+
+        -- wake up text
+        if WakeUpTextAlpha.running then
+            zutil.updatetimer(WakeUpTextAlpha, function ()
+                WakeUpTextAlpha.running = false
+            end, 0.001, GlobalDT)
+        end
+
+        love.graphics.setFont(Fonts.small)
+        love.graphics.setColor(1,1,1, (WakeUpTextAlpha.running and WakeUpTextAlpha.current or 1) * .8)
+        love.graphics.printf("Left-click to wake up.", 0, WINDOW.HEIGHT - Fonts.small:getHeight() - 10, WINDOW.WIDTH, "center")
     else
         love.graphics.setBackgroundColor(Colors[CurrentDepartment].bg)
 
@@ -316,6 +364,8 @@ function love.draw()
     love.graphics.rectangle("fill", 0, 0, love.graphics.getWidth(), offsetY)
     love.graphics.rectangle("fill", offsetX + WINDOW.WIDTH * WINDOW.SCALEFACTOR, 0, offsetX, love.graphics.getHeight())
     love.graphics.rectangle("fill", 0, offsetY + WINDOW.HEIGHT * WINDOW.SCALEFACTOR, love.graphics.getWidth(), offsetY)
+
+    DrawFlash()
 end
 function DrawGameFrame()
     DrawBG()
@@ -429,7 +479,8 @@ MusicPlaying.audio:setVolume(.2)
     MusicPlaying.audio:play()
 end
 function UpdateMusic()
-    if DepartmentTransition.running or MusicSetting ~= 1 or HasNMeds or Barcode.conclusionDelay.running or AlarmDelay.running then return end
+    if DepartmentTransition.running or MusicSetting ~= 1 or HasNMeds or Barcode.conclusionDelay.running or AlarmDelay.running or GameState == "ending" or GameState == "ending collected" then return end
+    if NMeds.effectDelay.running and CurrentDepartment == "X" and FilesCompleted == DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted then return end
 
 ---@diagnostic disable-next-line: undefined-field
     if not MusicPlaying.audio:isPlaying() then
@@ -474,7 +525,7 @@ function UpdateCursor()
         CursorState = "disallowed"
     elseif Barcode.running then
         CursorState = (Barcode.conclusionDelay.running and "disallowed" or "barcodeScanner")
-    elseif Spinner.running or (DepartmentTransition.running and #DepartmentTree[CurrentDepartment] == 1) then
+    elseif Spinner.running or (DepartmentTransition.running and #DepartmentTree[CurrentDepartment] == 1) or EndingDialoguePlaying.running then
         CursorState = "invisible"
     elseif love.mouse.isDown(1) or love.mouse.isDown(2) or love.mouse.isDown(3) then
         CursorState = "clicked"
@@ -564,4 +615,20 @@ function ConfineMouse()
     if mx > WINDOW.WIDTH then love.mouse.setPosition(WINDOW.WIDTH, my) end
     mx, my = love.mouse.getPosition()
     if my > WINDOW.HEIGHT then love.mouse.setPosition(mx, WINDOW.HEIGHT) end
+end
+
+function StartFlash(durationSeconds)
+    Flash.max = durationSeconds * 60
+    Flash.running = true
+end
+function UpdateFlash()
+    if not Flash.running then return end
+
+    zutil.updatetimer(Flash, function ()
+        Flash.running = false
+    end, 1, GlobalDT)
+end
+function DrawFlash()
+    if not Flash.running then return end
+    zutil.overlay({1,1,1})
 end

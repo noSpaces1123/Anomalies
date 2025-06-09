@@ -98,6 +98,18 @@ Colors = {
         barcodeHoveringOutline = {176, 145, 255},
         titleColors = { {176, 145, 255}, {255, 255, 255} },
     },
+
+    R = {
+        bg = {0, 0, 34},
+        bgParticles = {0, 0, 82},
+        fileBg = {251, 245, 243},
+        fileOutline = {0, 0, 82},
+        text = {251, 245, 243},
+        type3Square = {226, 133, 19},
+        squares = {0, 0, 20},
+        buttonFill = {251, 245, 243},
+        titleColors = { {222, 60, 76}, {226, 132, 19}, {251, 245, 243} },
+    },
 }
 
 -- converts all RGB 0-255 values into RGB 0-1
@@ -157,6 +169,7 @@ DepartmentData = {
         pointerAcceleration = .055, windowDegreeWidth = 18,
         trailSpawnInterval = 3*60,
         rnePercentChance = 26,
+        departmentEndAtXFilesCompleted = 25,
         rnes = { spinners = true, screens = false, roads = false, barcodes = true },
         findGridWidthAndHeight = function ()
             local find = function ()
@@ -201,10 +214,12 @@ DepartmentData = {
 
     D = {
         squarePalette = { ["0"] = 3, ["1"] = 5, ["2"] = 2, ["3"] = 4 },
-        trailSpawnInterval = 15*60,
+        trailSpawnInterval = 11*60,
+        pointerAcceleration = .04, windowDegreeWidth = 33,
         rnePercentChance = 18,
-        rnes = { spinners = false, screens = false, roads = false, barcodes = true },
+        rnes = { spinners = true, screens = false, roads = false, barcodes = true },
         useCameraShots = true,
+        departmentEndAtXFilesCompleted = 15,
         findGridWidthAndHeight = function ()
             local biasToWidth = zutil.randomchoice({true,false})
             local bias, unBias = 12, 7
@@ -228,7 +243,52 @@ DepartmentData = {
                     end
                 end
             end
-        end
+        end,
+        events = { -- when() should return a bool for when apply() should happen. if .multitrigger = true, the event can trigger multiple times.
+            { when = function ()
+                return FilesCompleted == 15
+            end, apply = function ()
+                TimeMultiplier = zutil.clamp(ClearGoal / CalculateClearGoal() / 2 + .5, .1, 1)
+            end, multitrigger = true },
+        },
+    },
+
+    R = {
+        squarePalette = { ["0"] = 2, ["1"] = 3, ["2"] = 3, ["3"] = 1 },
+        trailSpawnInterval = 50*60,
+        rnePercentChance = 0,
+        rnes = { spinners = false, screens = false, roads = false, barcodes = false },
+        departmentEndAtXFilesCompleted = 0,
+        findGridWidthAndHeight = function ()
+            local find = function ()
+                return zutil.clamp(math.floor(FilesCompleted / 3) + 9 + math.random(-3, 4), 4, math.huge)
+            end
+
+            GridGlobalData.width = find()
+            GridGlobalData.height = find()
+        end,
+        -- events = { -- when() should return a bool for when apply() should happen. if .multitrigger = true, the event can trigger multiple times.
+        --     { when = function ()
+        --         return FilesCompleted == 15
+        --     end, apply = function ()
+        --         TimeMultiplier = zutil.clamp(ClearGoal / CalculateClearGoal() / 2 + .5, .1, 1)
+        --     end, multitrigger = true },
+        -- },
+    },
+
+    LIZARD = {
+        squarePalette = { ["0"] = 2, ["1"] = 3, ["2"] = 3, ["3"] = 1 },
+        trailSpawnInterval = 50*60,
+        rnePercentChance = 0,
+        rnes = { spinners = false, screens = false, roads = false, barcodes = false },
+        noGrid = true,
+        -- events = { -- when() should return a bool for when apply() should happen. if .multitrigger = true, the event can trigger multiple times.
+        --     { when = function ()
+        --         return FilesCompleted == 15
+        --     end, apply = function ()
+        --         TimeMultiplier = zutil.clamp(ClearGoal / CalculateClearGoal() / 2 + .5, .1, 1)
+        --     end, multitrigger = true },
+        -- },
     },
 }
 
@@ -262,6 +322,8 @@ DepartmentTree = {
 
 
 function StartDepartmentTransition()
+    if CollectEndings(true) then return end
+
     DepartmentTransition.running = true
     DepartmentTransition.currentPhase = 1
     Dialogue.playing.textThusFar = ""
@@ -285,6 +347,17 @@ function UpdateDepartmentTransition()
             end , 1, GlobalDT)
         end
 
+    end
+end
+
+function ApplyDepartmentEvents()
+    if not DepartmentData[CurrentDepartment].events then return end
+
+    for eventIndex, event in ipairs(DepartmentData[CurrentDepartment].events) do
+        if not event.applied and event.when() then
+            event.apply()
+            if not event.multitrigger then DepartmentData[CurrentDepartment].events[eventIndex].applied = true end
+        end
     end
 end
 

@@ -15,7 +15,7 @@ HasNMeds = false
 function GainNMeds()
     HasNMeds = true
     zutil.playsfx(SFX.gainNMeds, .3, 1)
-    MusicPlaying.audio:stop()
+    if MusicPlaying.audio then MusicPlaying.audio:stop() end
     SaveData()
 end
 function TakeNMeds()
@@ -26,6 +26,11 @@ function TakeNMeds()
     HasNMeds = false
 
     zutil.playsfx(SFX.gulp, .05, 1)
+
+    if CurrentDepartment == "X" and FilesCompleted == DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted then
+        zutil.playsfx(SFX.riser3s, .4, 1)
+        TenseMusic:stop()
+    end
 end
 
 function DrawNMeds()
@@ -46,8 +51,11 @@ end
 
 function ApplyNMedsEffect()
     NMeds.effectDuration.running = true
-    NMeds.overlayIntensity.running = true
-    zutil.playsfx(SFX.takeNMeds, .4, 1)
+
+    if not (CurrentDepartment == "X" and FilesCompleted == DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted) then
+        NMeds.overlayIntensity.running = true
+        zutil.playsfx(SFX.takeNMeds, .4, 1)
+    end
 end
 
 function UpdateNMedsDuration()

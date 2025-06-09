@@ -35,6 +35,8 @@ function SaveData()
         ReduceScreenshake = ReduceScreenshake,
         AlarmInterval = AlarmInterval,
         UseCameraShots = UseCameraShots,
+        EndingsCollected = EndingsCollected,
+        DoNotDecreaseClearGoal = DoNotDecreaseClearGoal,
         other = {
             dialogueCharIntervalDefaultMax = Dialogue.playing.charInterval.defaultMax,
             nMedsEffectDuration = NMeds.effectDuration,
@@ -66,15 +68,19 @@ function LoadData()
 end
 
 function ResetSaveData()
-    assert(love.filesystem.remove(SaveFileDirectory), "Save data could not be removed. (1)")
-    assert(not love.filesystem.getInfo(SaveFileDirectory), "Save data could not be removed. (2)")
+    assert(love.filesystem.remove(SaveFileDirectory), "Save data could not be removed. (love.filesystem.remove failed)")
+    assert(not love.filesystem.getInfo(SaveFileDirectory), "Save data could not be removed. (save file persists after love.filesystem.remove passed)")
 
 
     FilesCompleted = 0
     CurrentDepartment = "A"
     HasNMeds = false
-    MusicPlaying.audio:stop()
+    if MusicPlaying.audio then MusicPlaying.audio:stop() end
     ConditionsCollected = 2
+    Rating = 0
+    GridGlobalData.introAnimation = { current = 0, max = 1, running = true }
+    DoNotDecreaseClearGoal = false
+
     InitialiseButtons()
     ResetRNEs()
     InitialiseRewardsCollected()

@@ -8,6 +8,7 @@ function InitialiseDialogue()
             color = {0,0,0},
             running = false,
             limit = 1000,
+            person = "foster",
         },
         peopleColors = {
             ["foster"] = Colors[CurrentDepartment].text,
@@ -16,6 +17,7 @@ function InitialiseDialogue()
             ["atrium"] = {0, 201/255, 128/255},
             ["yoke"] = {211/255, 213/255, 124/255},
             ["vim"] = {145/255, 1, 61/255},
+            ["you"] = {1,1,1},
         },
         list = {
             firstEverGreeting = {
@@ -388,9 +390,39 @@ function InitialiseDialogue()
                 end
             },
             {
-                text = "S- see you on the other side, pal.", person = "atrium",
+                text = "I've been thinking... Why can't we rise up against Moriel Incorporated? What's stopping us?", person = "atrium",
                 when = function ()
-                    return CurrentDepartment == "X" and FilesCompleted == 30 and ClearGoal <= 3
+                    return CurrentDepartment == "X" and FilesCompleted == 22
+                end
+            },
+            {
+                text = "Hey. T- take these N-Meds. NOW. You'll- you'll see the truth, j- just like I did!...", person = "atrium",
+                when = function ()
+                    local cond = CurrentDepartment == "X" and FilesCompleted == DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted and ClearGoal == 3
+                    if cond then zutil.playsfx(SFX.pistolCock, .4, 1) ; GainNMeds() ; DoNotDecreaseClearGoal = false end
+                    return cond
+                end
+            },
+            {
+                text = "S- STOP. TAKE THEM. NOW.", person = "atrium",
+                when = function ()
+                    local cond = CurrentDepartment == "X" and FilesCompleted == DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted and ClearGoal == 2
+                    if cond then
+                        zutil.playsfx(SFX.pistol, .5, 1) ; zutil.playsfx(SFX.dustFalling, .3, 1) ; ShakeIntensity = 10 ; StartFlash(.1) ; TenseMusic:play()
+
+                        for _ = 1, 40 do
+                            table.insert(Particles, NewParticle(math.random(0, WINDOW.WIDTH), -10, math.random()+.5, Colors[CurrentDepartment].text, -math.random()*3, 0, .03, math.random(300,600)))
+                        end
+                    end
+                    return cond
+                end
+            },
+            {
+                text = "I asked for it.", person = "you",
+                when = function ()
+                    local cond = CurrentDepartment == "X" and FilesCompleted == DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted and ClearGoal == 1
+                    if cond then zutil.playsfx(SFX.shortPistol, .8, 1) ; TenseMusic:stop() end
+                    return cond
                 end
             },
 
@@ -473,7 +505,7 @@ function InitialiseDialogue()
             {
                 text = "I hope you make the right decision. Remember, choose R to join us or choose D to surrender your mind to Moriel once more.", person = "noir",
                 when = function ()
-                    return CurrentDepartment == "C" and FilesCompleted == 30 and ClearGoal <= 5
+                    return CurrentDepartment == "C" and FilesCompleted == DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted and ClearGoal <= 5
                 end
             },
 
@@ -481,6 +513,52 @@ function InitialiseDialogue()
                 text = "My name is Vim. Welcome to Cleansing Department D. I sincerely hope you settle comfortably.", person = "vim",
                 when = function ()
                     local cond = CurrentDepartment == "D" and FilesCompleted == 0
+                    if cond then ConditionsCollected = 2 end
+                    return cond
+                end
+            },
+            {
+                text = "Hello again! Here's another card. And- your son's condition has been getting better but we currently don't have an end to his state in sight.", person = "vim", fuzzy = .2,
+                when = function ()
+                    local cond = CurrentDepartment == "D" and FilesCompleted == 2
+                    if cond then ConditionsCollected = 3 end
+                    return cond
+                end
+            },
+            {
+                text = "Because of the severity of his injuries, it's not a good idea to get our hopes up...", person = "vim", fuzzy = .6,
+                when = function ()
+                    return CurrentDepartment == "D" and FilesCompleted == 5
+                end
+            },
+            {
+                text = "... of an invasive treatment but it may just help your son wake up.", person = "vim", fuzzy = .8,
+                when = function ()
+                    local cond = CurrentDepartment == "D" and FilesCompleted == 8
+                    if cond then ConditionsCollected = 4 end
+                    return cond
+                end
+            },
+            {
+                text = "...", person = "vim",
+                when = function ()
+                    local cond = CurrentDepartment == "D" and FilesCompleted == 13
+                    if cond then ConditionsCollected = 5 end
+                    return cond
+                end
+            },
+            {
+                text = "The treatment is ready. It- it may just work.", person = "vim", fuzzy = .2,
+                when = function ()
+                    local cond = CurrentDepartment == "D" and FilesCompleted == 15
+                    return cond
+                end
+            },
+
+            {
+                text = "You chose the right decision. You're a good person, ######.", person = "noir", fuzzy = .07,
+                when = function ()
+                    local cond = CurrentDepartment == "R" and FilesCompleted == 0
                     if cond then ConditionsCollected = 2 end
                     return cond
                 end
@@ -507,12 +585,16 @@ function UpdateDialogue()
     zutil.updatetimer(Dialogue.playing.charInterval, function ()
         if Dialogue.playing.textThusFar == Dialogue.playing.targetText then
             Dialogue.playing.running = false
+            if Dialogue.playing.afterFunc then Dialogue.playing.afterFunc() end
+
             return
         end
 
         local i = #Dialogue.playing.textThusFar + 1
         local add = string.sub(Dialogue.playing.targetText, i, i)
         Dialogue.playing.textThusFar = Dialogue.playing.textThusFar .. add
+
+        Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.defaultMax
 
         if #Dialogue.playing.textThusFar >= 3 and add == "." and string.sub(Dialogue.playing.textThusFar, #Dialogue.playing.textThusFar-1, #Dialogue.playing.textThusFar-1) == "." and string.sub(Dialogue.playing.textThusFar, #Dialogue.playing.textThusFar-2, #Dialogue.playing.textThusFar-2) == "." then
             Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.defaultMax * 14
@@ -524,9 +606,11 @@ function UpdateDialogue()
             Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.defaultMax
         end
 
-        if add ~= "#" then
+        if add ~= "#" and SFX[Dialogue.playing.person] then
             zutil.playsfx(SFX[Dialogue.playing.person], (Dialogue.playing.person == "yoke" and .15 or .05), math.random()/2+.5)
         end
+
+        if Dialogue.playing.person == "you" then Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.max * 2 end
     end, 1, GlobalDT)
 end
 
@@ -553,8 +637,42 @@ function StartDialogue(type, category_OR_eventualIndex, animation)
         Dialogue.playing.targetText = zutil.randomchoice(Dialogue.list[category_OR_eventualIndex])
         Dialogue.playing.person = "foster"
     elseif type == "eventual" then
-        Dialogue.playing.targetText = Dialogue.eventual[category_OR_eventualIndex].text
         Dialogue.playing.person = (Dialogue.eventual[category_OR_eventualIndex].person and Dialogue.eventual[category_OR_eventualIndex].person or "foster")
+
+        if Dialogue.eventual[category_OR_eventualIndex].fuzzy then
+            Dialogue.playing.targetText = ""
+
+            local text = Dialogue.eventual[category_OR_eventualIndex].text
+            local fuzziness = Dialogue.eventual[category_OR_eventualIndex].fuzzy * 100
+
+            for index = 1, #text do
+                local char = string.sub(Dialogue.eventual[category_OR_eventualIndex].text, index, index)
+                Dialogue.playing.targetText = Dialogue.playing.targetText .. ((zutil.weightedbool(fuzziness) and zutil.search(zutil.letters(), string.lower(char))) and "#" or char)
+            end
+        else
+            Dialogue.playing.targetText = Dialogue.eventual[category_OR_eventualIndex].text
+        end
+    end
+
+    Dialogue.playing.afterSFX = nil
+
+    Dialogue.playing.color = Dialogue.peopleColors[Dialogue.playing.person]
+end
+function StartEndingDialogue(dialogueObject)
+    Dialogue.playing.running = true
+    Dialogue.playing.textThusFar = ""
+    Dialogue.playing.charInterval.current = 0
+    Dialogue.playing.charInterval.max = Dialogue.playing.charInterval.defaultMax
+    Dialogue.playing.preliminaryWait.current = 0
+    Dialogue.playing.preliminaryWait.done = false
+
+    Dialogue.playing.targetText = dialogueObject.text
+    Dialogue.playing.person = "you"
+
+    if dialogueObject.dialogueEndFunc then Dialogue.playing.afterFunc = dialogueObject.dialogueEndFunc end
+
+    for _, value in pairs(Animations) do
+        value.running = false
     end
 
     Dialogue.playing.color = Dialogue.peopleColors[Dialogue.playing.person]
@@ -586,6 +704,7 @@ end
 function GetDialogueY()
     local _, y = GetGridAnchorCoords()
     if DepartmentTransition.running then y = WINDOW.CENTER_Y
+    elseif GameState == "ending" then y = WINDOW.HEIGHT
     elseif GameState == "menu" then y = 540
     elseif GameState == "options" then y = WINDOW.HEIGHT end
 

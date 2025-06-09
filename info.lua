@@ -1,7 +1,7 @@
 Info = {
     width = 500,
     text =
-[[Anomalies v0.5.0-alpha
+[[Anomalies v1.0.0
 
 ---------------- CREDITS ----------------
 

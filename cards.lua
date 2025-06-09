@@ -191,6 +191,21 @@ AllConditions = {
             isNot = true,
         },
     },
+
+    R = {
+        {
+            parts = {
+                { offset = { y = -1, x = -1 }, type = 1 },
+                { offset = { y = 1, x = 0 }, type = 1 },
+            },
+        },
+        {
+            parts = {
+                { offset = { y = -1, x = 0 }, type = 2 },
+                { offset = { y = 0, x = 1 }, type = 2 },
+            },
+        },
+    },
 }
 
 NewCardIndicator = {
