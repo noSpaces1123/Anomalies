@@ -139,10 +139,10 @@ function love.load()
 
     love.window.setFullscreen(InFullscreen)
 
-    -- FilesCompleted = 25
-    -- ConditionsCollected = 5
+    -- FilesCompleted = 24
+    -- ConditionsCollected = 0
     -- CurrentDepartment = "X"
-    -- ClearGoal = 4
+    -- ClearGoal = 2
     -- WonSpinner = true
     -- UseScreens = true
     -- UseRoads = true

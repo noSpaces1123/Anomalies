@@ -18,7 +18,7 @@ function StartAlarm()
     AlarmDelay.running = true
     AlarmDelay.current = 0
     zutil.playsfx(SFX.alarmBlare, .2, 1)
-    MusicPlaying.audio:pause()
+    if MusicPlaying.audio then MusicPlaying.audio:pause() end
 end
 function UpdateAlarmDelay()
     if not AlarmDelay.running then return end

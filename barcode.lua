@@ -118,7 +118,7 @@ function UpdateBarcodeConclusionDelay()
     end
 
 ---@diagnostic disable-next-line: undefined-field
-    MusicPlaying.audio:play()
+    if MusicPlaying.audio then MusicPlaying.audio:play() end
 
     Barcode.running = false
 end

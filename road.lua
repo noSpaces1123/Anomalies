@@ -19,7 +19,7 @@ function StartRoad(conditionsMetWhenStarted)
     Road.obstacles = {}
     Road.obstacleInterval.current = 0
     Road.obstaclesLeftToSpawn = math.random(10, 17)
-    Road.speed = DepartmentData[CurrentDepartment].roadObstacleSpeed
+    Road.speed = (DepartmentData[CurrentDepartment].roadObstacleSpeed and DepartmentData[CurrentDepartment].roadObstacleSpeed or 10)
     Road.running = true
 
     zutil.playsfx(SFX.roadStart, .3, math.random()/10+1.1)
