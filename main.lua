@@ -187,7 +187,7 @@ function love.update(dt)
     GlobalUnalteredDT = dt * 60
     GlobalDT = GlobalUnalteredDT * TimeMultiplier
 
-    if InFullscreen then WINDOW.SCALEFACTOR = (PreciseDisplayScaling and math.floor or function (x) return x end)(WINDOW.HEIGHT / WINDOW.DEFAULT_HEIGHT) end
+    if InFullscreen then WINDOW.SCALEFACTOR = (not PreciseDisplayScaling and math.floor or function (x) return x end)(love.graphics.getHeight() / WINDOW.DEFAULT_HEIGHT) end
 
     if GameState == "game" then
         CollectEndings()
