@@ -106,7 +106,7 @@ function love.mousepressed(mx, my, button)
     if EndOfContent.showing then return end
     if GridGlobalData.generationAnimation.running or GameState == "menu" or (DepartmentTransition.running and #DepartmentTree[CurrentDepartment] > 1) then goto skipInteraction end
 
-    if not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not Barcode.running and not RNEPractice.wait.running then
+    if not DepartmentData[CurrentDepartment].noGrid and not Handbook.showing and not Spinner.running and not Screen.running and not Road.running and not Barcode.running and not RNEPractice.wait.running then
         if button == 1 and SquareSelected.x ~= nil and SquareSelected.y ~= nil and Grid[SquareSelected.y][SquareSelected.x] > 0 then
             UpdateSelectedSquare()
 

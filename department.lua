@@ -110,6 +110,14 @@ Colors = {
         buttonFill = {251, 245, 243},
         titleColors = { {222, 60, 76}, {226, 132, 19}, {251, 245, 243} },
     },
+
+    LIZARD = {
+        bg = {241, 227, 211},
+        bgParticles = {35, 21, 5},
+        text = {35, 21, 5},
+        buttonFill = {250, 245, 239},
+        titleColors = { {216, 140, 154}, {242, 208, 169}, {153, 193, 185}, {142, 125, 190} },
+    },
 }
 
 -- converts all RGB 0-255 values into RGB 0-1
@@ -281,7 +289,7 @@ DepartmentData = {
         trailSpawnInterval = 50*60,
         rnePercentChance = 0,
         rnes = { spinners = false, screens = false, roads = false, barcodes = false },
-        noGrid = true,
+        noGrid = true, lizards = true,
         -- events = { -- when() should return a bool for when apply() should happen. if .multitrigger = true, the event can trigger multiple times.
         --     { when = function ()
         --         return FilesCompleted == 15
@@ -362,7 +370,7 @@ function ApplyDepartmentEvents()
 end
 
 function DrawBG()
-    if CurrentDepartment ~= "A" and not DepartmentTransition.running then
+    if CurrentDepartment ~= "A" and CurrentDepartment ~= "LIZARD" and not DepartmentTransition.running then
         local width = 30
         local maxDistance = 400
         local colorType = (Screen.running and "screenOutline" or "fileOutline")

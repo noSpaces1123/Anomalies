@@ -231,6 +231,8 @@ function LoadCards()
 end
 
 function DrawCards()
+    if DepartmentData[CurrentDepartment].noGrid then return end
+
     local maxDistance = 40
     local distance = zutil.distance(love.mouse.getX(), love.mouse.getY(), love.mouse.getX(), WINDOW.HEIGHT)
     local ratio = distance/maxDistance

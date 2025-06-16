@@ -43,6 +43,7 @@ function LoadModules()
     require "nmeds"
     require "cameraShot"
     require "endings"
+    require "lizard"
 end
 
 LoadModules()
@@ -141,7 +142,7 @@ function love.load()
 
     -- FilesCompleted = 24
     -- ConditionsCollected = 0
-    -- CurrentDepartment = "X"
+    -- CurrentDepartment = "LIZARD"
     -- ClearGoal = 2
     -- WonSpinner = true
     -- UseScreens = true
@@ -158,6 +159,8 @@ function love.load()
     elseif MusicSetting == 2 then
         StartBrownNoise()
     end
+
+    SpawnLizards()
 
     InitialiseButtons()
 
@@ -217,6 +220,7 @@ function love.update(dt)
         UpdateAlarmInterval()
         UpdateAlarmDelay()
         UpdateCameraShotOverlay()
+        UpdateLizards()
     elseif GameState == "menu" then
         if TitleFade.running then
             zutil.updatetimer(TitleFade, function ()
@@ -383,6 +387,7 @@ function DrawGameFrame()
         DrawNMeds()
         DrawGameDisplays()
         DrawParticles()
+        DrawLizards()
         DrawCards()
         DrawRewards()
     end

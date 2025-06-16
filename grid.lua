@@ -29,6 +29,8 @@ ConditionsCollected = 2
 
 
 function NewFile()
+    if DepartmentData[CurrentDepartment].noGrid then return end
+
     CalculateGridSize()
 
     Trails = {}
@@ -64,6 +66,7 @@ function UpdateFileGenerationAnimation()
 end
 
 function CalculateGridSize()
+    if DepartmentData[CurrentDepartment].noGrid then return end
     DepartmentData[CurrentDepartment].findGridWidthAndHeight()
 end
 function CalculateClearGoal()
@@ -71,7 +74,7 @@ function CalculateClearGoal()
 end
 
 function DrawGrid()
-    if Spinner.running or Screen.running or Road.running or Barcode.running or RNEPractice.wait.running then return end
+    if DepartmentData[CurrentDepartment].noGrid or Spinner.running or Screen.running or Road.running or Barcode.running or RNEPractice.wait.running then return end
 
     local anchorX, anchorY = GetGridAnchorCoords()
     local spacing = SquareGlobalData.width/3
