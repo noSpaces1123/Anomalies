@@ -37,6 +37,7 @@ function SaveData()
         UseCameraShots = UseCameraShots,
         EndingsCollected = EndingsCollected,
         DoNotDecreaseClearGoal = DoNotDecreaseClearGoal,
+        HasInterDepartmentTransporter = HasInterDepartmentTransporter,
         other = {
             dialogueCharIntervalDefaultMax = Dialogue.playing.charInterval.defaultMax,
             nMedsEffectDuration = NMeds.effectDuration,
@@ -80,6 +81,7 @@ function ResetSaveData()
     Rating = 0
     GridGlobalData.introAnimation = { current = 0, max = 1, running = true }
     DoNotDecreaseClearGoal = false
+    HasInterDepartmentTransporter = false
 
     InitialiseButtons()
     ResetRNEs()

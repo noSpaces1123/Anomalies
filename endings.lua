@@ -45,6 +45,15 @@ Endings = {
             { text = "I asked for it." },
         }
     },
+    {
+        name = "lizard", checkIfToBeCollected = function (departmentCompleted)
+            return CurrentDepartment == "LIZARD" and CalculateOpacityOfLizardFade() >= 1
+        end,
+        dialogue = {
+            { text = "I lived the rest of my days with the lizards..." },
+            { text = "Hell to the yeah." },
+        }
+    },
 }
 
 for _, ending in ipairs(Endings) do
@@ -80,6 +89,7 @@ function CollectEndings()
             WakeUpTextAlpha.current = 0
 
             TimeMultiplier = 1
+            InterDepartmentTransporter.box.typing = false
 
             Dialogue.playing.preliminaryWait.max = Dialogue.playing.preliminaryWait.max * 1.5
 

@@ -44,6 +44,7 @@ function LoadModules()
     require "cameraShot"
     require "endings"
     require "lizard"
+    require "inter-department transporter"
 end
 
 LoadModules()
@@ -89,7 +90,7 @@ function love.load()
     CursorState = "normal"
 
     Fonts = {
-        cleargoal = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_SemiExpanded-Light.ttf", 30),
+        clearGoal = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_SemiExpanded-Light.ttf", 30),
         rating = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 22),
         normal = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Light.ttf", 16),
         handbook = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-Bold.ttf", 16),
@@ -98,6 +99,7 @@ function love.load()
         smallBoldExpanded = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Expanded-Bold.ttf", 10),
         big = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata-ExtraLight.ttf", 50),
         dialogue = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 16),
+        interDepartmentTransporterInput = love.graphics.newFont("assets/fonts/Inconsolata/static/Inconsolata_Condensed-Medium.ttf", 29),
     }
 
     MusicPlaying = { name = nil, audio = nil }
@@ -108,6 +110,8 @@ function love.load()
     TenseMusic = love.audio.newSource("assets/music/Fence.wav", "stream")
     TenseMusic:setVolume(.3)
     TenseMusic:setLooping(true)
+
+    TimeMultiplier = 1
 
     ImmediatelyStartShift = false
     Jumpscares = true
@@ -140,13 +144,15 @@ function love.load()
 
     love.window.setFullscreen(InFullscreen)
 
-    -- FilesCompleted = 24
-    -- ConditionsCollected = 0
-    -- CurrentDepartment = "LIZARD"
-    -- ClearGoal = 2
+    -- FilesCompleted = 16
+    -- ConditionsCollected = 6
+    -- CurrentDepartment = "X"
+    -- ClearGoal = 1
     -- WonSpinner = true
+    -- UseSpinners = true
     -- UseScreens = true
     -- UseRoads = true
+    -- UseBarcodes = true
     -- HasNMeds = false
 
     LoadCards()
@@ -181,7 +187,6 @@ function love.load()
 
     love.graphics.setBackgroundColor(Colors[CurrentDepartment].bg)
 
-    TimeMultiplier = 1
     GlobalUnalteredDT = 0
     GlobalDT = 0
 end
@@ -193,6 +198,7 @@ function love.update(dt)
     if InFullscreen then WINDOW.SCALEFACTOR = (not PreciseDisplayScaling and math.floor or function (x) return x end)(love.graphics.getHeight() / WINDOW.DEFAULT_HEIGHT) end
 
     if GameState == "game" then
+        UpdateDepartmentTransition()
         CollectEndings()
         UpdateSelectedSquare()
         UpdateFileGenerationAnimation()
@@ -204,8 +210,8 @@ function love.update(dt)
         UpdateWheel()
         UpdateScreen()
         UpdateRoad()
+        UpdateDepartmentTimeHere()
         UpdateRoadObstacleSpawnInterval()
-        UpdateDepartmentTransition()
         ApplyDepartmentEvents()
         UpdateRNEPracticeWait()
         UpdateRNEQueue()
@@ -369,6 +375,7 @@ function love.draw()
     love.graphics.rectangle("fill", offsetX + WINDOW.WIDTH * WINDOW.SCALEFACTOR, 0, offsetX, love.graphics.getHeight())
     love.graphics.rectangle("fill", 0, offsetY + WINDOW.HEIGHT * WINDOW.SCALEFACTOR, love.graphics.getWidth(), offsetY)
 
+    DrawFadeOutOverlay()
     DrawFlash()
 end
 function DrawGameFrame()
@@ -390,6 +397,7 @@ function DrawGameFrame()
         DrawLizards()
         DrawCards()
         DrawRewards()
+        DrawInterDepartmentTransporter()
     end
 
     DrawDialogue()
@@ -424,15 +432,17 @@ function DrawGameDisplays()
 
     love.graphics.setColor(Colors[CurrentDepartment].text)
 
-    if CalculateClearGoal() > 1 then
-        love.graphics.setFont(Fonts.cleargoal)
-        love.graphics.print("CLEAR " .. ClearGoal .. " MORE ANOMAL" .. (ClearGoal == 1 and "Y" or "IES"), spacing, spacing)
+    if (CalculateClearGoal() > 1 or CurrentDepartment ~= "A") and not DepartmentData[CurrentDepartment].noGrid then
+        local cg = ((ShouldShowLizardIDTCode() and zutil.weightedbool(100 * CalculateNMedsEffectIntensity())) and LizardGlobalData.departmentCode or ClearGoal)
+
+        love.graphics.setFont(Fonts.clearGoal)
+        love.graphics.print("CLEAR " .. cg .. " MORE ANOMAL" .. (cg == 1 and "Y" or "IES"), spacing, spacing)
 
         love.graphics.setLineWidth(1)
-        love.graphics.line(spacing + Fonts.cleargoal:getWidth("CLEAR "), spacing + Fonts.cleargoal:getHeight(), spacing + Fonts.cleargoal:getWidth("CLEAR " .. ClearGoal), spacing + Fonts.cleargoal:getHeight())
+        love.graphics.line(spacing + Fonts.clearGoal:getWidth("CLEAR "), spacing + Fonts.clearGoal:getHeight(), spacing + Fonts.clearGoal:getWidth("CLEAR " .. cg), spacing + Fonts.clearGoal:getHeight())
     end
 
-    if FilesCompleted >= 3 then
+    if (FilesCompleted >= 3 or CurrentDepartment ~= "A") and not DepartmentData[CurrentDepartment].noGrid then
         love.graphics.setFont(Fonts.normal)
         love.graphics.printf(FilesCompleted .. " completed files", 0, spacing, WINDOW.WIDTH - spacing, "right")
 
@@ -485,10 +495,11 @@ MusicPlaying.audio:setVolume(.2)
 end
 function UpdateMusic()
     if DepartmentTransition.running or MusicSetting ~= 1 or HasNMeds or Barcode.conclusionDelay.running or AlarmDelay.running or GameState == "ending" or GameState == "ending collected" then return end
+    if InterDepartmentTransporter.suspendMusic then return end
     if NMeds.effectDelay.running and CurrentDepartment == "X" and FilesCompleted == DepartmentData[CurrentDepartment].departmentEndAtXFilesCompleted then return end
 
 ---@diagnostic disable-next-line: undefined-field
-    if not MusicPlaying.audio:isPlaying() then
+    if not MusicPlaying.audio or not MusicPlaying.audio:isPlaying() then
         local viable = {}
         for _, value in ipairs(Music) do
             if value.name ~= MusicPlaying.name then
@@ -530,7 +541,7 @@ function UpdateCursor()
         CursorState = "disallowed"
     elseif Barcode.running then
         CursorState = (Barcode.conclusionDelay.running and "disallowed" or "barcodeScanner")
-    elseif Spinner.running or (DepartmentTransition.running and #DepartmentTree[CurrentDepartment] == 1) or EndingDialoguePlaying.running then
+    elseif Spinner.running or (DepartmentTransition.running and DepartmentTree[CurrentDepartment] and #DepartmentTree[CurrentDepartment] == 1) or EndingDialoguePlaying.running or InterDepartmentTransporter.box.typing then
         CursorState = "invisible"
     elseif love.mouse.isDown(1) or love.mouse.isDown(2) or love.mouse.isDown(3) then
         CursorState = "clicked"

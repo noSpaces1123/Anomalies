@@ -68,6 +68,8 @@ function CheckToGrantRewards()
 end
 
 function DrawRewards()
+    if CurrentDepartment == "LIZARD" then return end
+
     love.graphics.setColor(1,1,1)
     local i = 1
     for index, data in ipairs(Rewards) do

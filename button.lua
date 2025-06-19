@@ -40,7 +40,7 @@ function NewButton(text, x, y, width, height, alignMode, lineColor, fillColor, m
         end,
         update = function (self)
             local before = self.mouseOver
-            self.mouseOver = zutil.touching(love.mouse.getX(), love.mouse.getY(), 0, 0, self.x, self.y, self.width, self.height)
+            self.mouseOver = not InterDepartmentTransporter.box.typing and zutil.touching(love.mouse.getX(), love.mouse.getY(), 0, 0, self.x, self.y, self.width, self.height)
 
             if self.enable(self) then
 
@@ -294,7 +294,7 @@ function InitialiseButtons()
             SFX.brownNoise:stop()
         elseif MusicSetting == 2 then
 ---@diagnostic disable-next-line: undefined-field
-            MusicPlaying.audio:stop()
+            if MusicPlaying.audio then MusicPlaying.audio:stop() end
             StartBrownNoise()
         elseif MusicSetting == 0 then
             SFX.brownNoise:stop()

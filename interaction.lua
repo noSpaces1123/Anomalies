@@ -1,3 +1,4 @@
+---@diagnostic disable: undefined-field
 SquareSelected = { x = nil, y = nil } -- the square the mouse is hovering over
 
 function UpdateSelectedSquare()
@@ -64,6 +65,8 @@ function PopSquare(x, y, conditionsMet)
 end
 
 function love.mousepressed(mx, my, button)
+    if InterDepartmentTransporter.box.typing then return end
+
     if EndingDialoguePlaying.running and button == 1 then
         if EndingDialoguePlaying.running then
             if Dialogue.playing.running then
@@ -229,6 +232,11 @@ function love.mousepressed(mx, my, button)
         CheckClickOnBarcode(mx, my)
     end
 
+    if HasInterDepartmentTransporter and button == 1 and zutil.touching(InterDepartmentTransporter.x + InterDepartmentTransporter.box.textX, InterDepartmentTransporter.y + InterDepartmentTransporter.box.textY, InterDepartmentTransporter.box.width, InterDepartmentTransporter.box.height,
+    mx, my, 0, 0) then
+        InterDepartmentTransporter.box.typing = true
+    end
+
     ::skipInteraction::
 
     CheckButtonsClicked(button)
@@ -245,7 +253,23 @@ function love.wheelmoved(_, y)
 end
 
 function love.keypressed(key)
-    if Handbook.showing then
+    if InterDepartmentTransporter.box.typing then
+        if string.find(key, "[0123456789]") and #InterDepartmentTransporter.box.input < InterDepartmentTransporter.box.charLimit then
+            InterDepartmentTransporter.box.input = InterDepartmentTransporter.box.input .. key
+            zutil.playsfx(SFX.type, .2, math.random()/3+.8)
+        elseif key == "backspace" and #InterDepartmentTransporter.box.input > 0 then
+            InterDepartmentTransporter.box.input = string.sub(InterDepartmentTransporter.box.input, 1, #InterDepartmentTransporter.box.input - 1)
+            zutil.playsfx(SFX.type, .2, .7)
+        elseif key == "return" and #InterDepartmentTransporter.box.input == InterDepartmentTransporter.box.charLimit then
+            if InterDepartmentTransporter.codes[InterDepartmentTransporter.box.input] then InterDepartmentTransporter.codes[InterDepartmentTransporter.box.input]()
+            else
+                ShakeIntensity = 4
+                InterDepartmentTransporter.box.input = ""
+                zutil.playsfx(SFX.alarmBlare, .2, 1)
+            end
+            InterDepartmentTransporter.box.typing = false
+        end
+    elseif Handbook.showing then
         local pageBefore = Handbook.page
 
         if key == "left" then
@@ -314,6 +338,9 @@ function CompleteFile()
     for _, value in pairs(Animations) do
         value.running = false
     end
+
+    InterDepartmentTransporter.suspendMusic = false
+    if MusicPlaying.audio then MusicPlaying.audio:play() end
 
     if not Dialogue.playing.running then Dialogue.playing.textThusFar = "" end
 

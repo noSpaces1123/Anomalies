@@ -69,7 +69,7 @@ function DrawBarcode()
     drawBarcode(Barcode.targetPattern, Barcode.xAnchor, 300)
 
     -- text
-    love.graphics.setColor(Colors[CurrentDepartment].barcodeOutline)
+    love.graphics.setColor(Colors[CurrentDepartment].text)
     love.graphics.setFont(Fonts.normal)
     love.graphics.printf((Barcode.conclusionDelay.running and "JUST A MOMENT..." or "WHICH BARCODE BELOW MATCHES THE BARCODE ABOVE?"), 0, 300 + Barcode.patternHeight + 50, WINDOW.WIDTH, "center")
 end
@@ -90,7 +90,7 @@ function CheckClickOnBarcode(mx, my)
             zutil.playsfx(SFX.barcodeScan, .5, 1)
             zutil.playsfx(SFX["barcodeProcessing" .. math.random(1,3)], .8, math.random()/10+.95)
 
-            if zutil.weightedbool(24) then
+            if (Barcode.conclusion == "correct" and function (b) return b end or function (b) return not b end)(zutil.weightedbool(24)) then
 ---@diagnostic disable-next-line: undefined-field
                 MusicPlaying.audio:pause()
             end

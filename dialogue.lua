@@ -1,3 +1,5 @@
+---@diagnostic disable: undefined-field
+
 function InitialiseDialogue()
     Dialogue = {
         playing = {
@@ -319,6 +321,26 @@ function InitialiseDialogue()
                     return cond
                 end
             },
+            {
+                text = "Hey, uh... Keep this for me, will you? Please don't touch it. It's not m- meant for our level of clearence... S- see you!", person = "atrium",
+                when = function ()
+                    local cond = CurrentDepartment == "B" and FilesCompleted == 23
+                    if cond then
+                        GetInterDepartmentTransporter()
+                        InterDepartmentTransporter.suspendMusic = true
+                        if MusicPlaying.audio then MusicPlaying.audio:pause() end
+                    end
+                    return cond
+                end
+            },
+            {
+                text = "Hey, thanks for keeping it for me! I know I- I know I can trust you know, heh.", person = "atrium",
+                when = function ()
+                    local cond = CurrentDepartment == "B" and FilesCompleted == 25
+                    if cond then HasInterDepartmentTransporter = false ; SaveData() end
+                    return cond
+                end
+            },
 
             {
                 text = "...", person = "yoke",
@@ -628,9 +650,7 @@ function StartDialogue(type, category_OR_eventualIndex, animation)
     if animation then
         Animations[animation].running = true
     else
-        for _, value in pairs(Animations) do
-            value.running = false
-        end
+        TurnOffDialogueAnimations()
     end
 
     if type == "list" then
@@ -671,9 +691,7 @@ function StartEndingDialogue(dialogueObject)
 
     if dialogueObject.dialogueEndFunc then Dialogue.playing.afterFunc = dialogueObject.dialogueEndFunc end
 
-    for _, value in pairs(Animations) do
-        value.running = false
-    end
+    TurnOffDialogueAnimations()
 
     Dialogue.playing.color = Dialogue.peopleColors[Dialogue.playing.person]
 end
@@ -726,5 +744,11 @@ function SearchForDueEventualDialogue()
     if ConditionsCollected > condscollectedbefore then
         NewCardIndicator.on = true
         Animations.newCard.running = true
+    end
+end
+
+function TurnOffDialogueAnimations()
+    for _, value in pairs(Animations) do
+        value.running = false
     end
 end

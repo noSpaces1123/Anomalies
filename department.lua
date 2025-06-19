@@ -217,7 +217,7 @@ DepartmentData = {
                     Grid[y][x] = target
                 end
             end
-        end
+        end,
     },
 
     D = {
@@ -290,13 +290,11 @@ DepartmentData = {
         rnePercentChance = 0,
         rnes = { spinners = false, screens = false, roads = false, barcodes = false },
         noGrid = true, lizards = true,
-        -- events = { -- when() should return a bool for when apply() should happen. if .multitrigger = true, the event can trigger multiple times.
-        --     { when = function ()
-        --         return FilesCompleted == 15
-        --     end, apply = function ()
-        --         TimeMultiplier = zutil.clamp(ClearGoal / CalculateClearGoal() / 2 + .5, .1, 1)
-        --     end, multitrigger = true },
-        -- },
+        timeSpentHere = 0,
+        load = function ()
+            SpawnLizards()
+            GameState = "menu"
+        end,
     },
 }
 
@@ -325,15 +323,19 @@ DepartmentTree = {
     B = { "C", "X" },
     C = { "D", "R" },
     X = { "E", "W" },
+    LIZARD = { "LIZARD" }
 }
 
 
 
-function StartDepartmentTransition()
+function StartDepartmentTransition(forceDepartment)
     if CollectEndings(true) then return end
+
+    InterDepartmentTransporter.box.typing = false
 
     DepartmentTransition.running = true
     DepartmentTransition.currentPhase = 1
+    DepartmentTransition.forceDepartment = forceDepartment
     Dialogue.playing.textThusFar = ""
     Dialogue.playing.running = false
 
@@ -367,6 +369,11 @@ function ApplyDepartmentEvents()
             if not event.multitrigger then DepartmentData[CurrentDepartment].events[eventIndex].applied = true end
         end
     end
+end
+
+function UpdateDepartmentTimeHere()
+    if not DepartmentData[CurrentDepartment].timeSpentHere or EndingDialoguePlaying.running then return end
+    DepartmentData[CurrentDepartment].timeSpentHere = DepartmentData[CurrentDepartment].timeSpentHere + love.timer.getDelta()
 end
 
 function DrawBG()
@@ -406,6 +413,8 @@ function LoadNewDepartment(dept)
     PlaceAnomalies()
 
     ShakeIntensity = 5
+
+    if DepartmentData[CurrentDepartment].load then DepartmentData[CurrentDepartment].load() end
 
     LoadCards()
 

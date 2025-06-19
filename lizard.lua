@@ -6,7 +6,10 @@ LizardGlobalData = {
         {142, 125, 190},
     },
     particleInterval = { current = 0, max = 10 },
+    departmentCode = "7124",
 }
+
+ShownLizardIDTCode = false -- IDT stands for Inter-Department Transporter
 
 Lizards = {}
 
@@ -76,4 +79,16 @@ function UpdateLizards()
             table.insert(Particles, NewParticle(lizard.x + lizard.width / 2, lizard.y + lizard.height / 2, 4, color, 0, 0, 0, 200))
         end
     end, 1, GlobalDT)
+end
+
+function DrawFadeOutOverlay()
+    if not DepartmentData[CurrentDepartment].lizards or EndingDialoguePlaying.running or GameState ~= "game" then return end
+    zutil.overlay({0,0,0, CalculateOpacityOfLizardFade()})
+end
+function CalculateOpacityOfLizardFade()
+    return zutil.clamp((DepartmentData[CurrentDepartment].timeSpentHere - 20) / 5, 0, 1)
+end
+
+function ShouldShowLizardIDTCode()
+    return CurrentDepartment == "X" and NMeds.effectDuration.running
 end
