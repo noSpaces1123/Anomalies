@@ -173,6 +173,7 @@ DepartmentData = {
 
     X = {
         squarePalette = { ["0"] = 3, ["1"] = 5, ["2"] = 5, ["3"] = 1 },
+        shutterSpeed = 3,
         roadObstacleSpeed = 10,
         pointerAcceleration = .055, windowDegreeWidth = 18,
         trailSpawnInterval = 3*60,
